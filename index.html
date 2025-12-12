@@ -11,13 +11,12 @@
             background-color: #f3f4f6;
         }
         .table-wrapper {
-            max-height: 600px; /* Table scrollable rahegi */
+            max-height: 600px; /* Table scrollable height */
             overflow: auto;
             border: 1px solid #d1d5db;
             border-radius: 0.5rem;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             background-color: white;
-            margin-top: 1rem;
         }
         
         /* Spreadsheet Style Table */
@@ -55,7 +54,7 @@
         }
         .sticky-col-2 { 
             position: sticky; 
-            left: 100px; 
+            left: 100px; /* Adjusted via JS */
             z-index: 10; 
             background-color: #f9fafb; 
             border-right: 2px solid #d1d5db;
@@ -83,13 +82,13 @@
 
     <div class="max-w-7xl mx-auto bg-white p-6 rounded-lg shadow-lg">
         <h1 class="text-2xl font-bold mb-4 text-gray-800">📊 Daily Enquiry Matrix Report</h1>
-        <p class="text-sm text-gray-600 mb-2">Paste your raw CSV data below.  <<------ : @Ambujgarg_official </p>
+        <p class="text-sm text-gray-600 mb-4">Paste your raw CSV data below. <------ : @Ambujgarg_official </p>
 
-        <!-- Input Section (Wapas Bada Box) -->
+        <!-- Input Section (Big Box Restored) -->
         <textarea id="csvInput" class="w-full h-48 p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 text-xs font-mono" placeholder="Paste CSV/Excel data here... (Headers: Model Variant, Enquiry Number, Enquiry Created Date, Network Type)"></textarea>
         
         <div class="flex flex-wrap items-center gap-4 mt-4">
-            <button onclick="generateReport()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded font-medium transition shadow-sm">
+            <button onclick="parseAndGenerate()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded font-medium transition shadow-sm">
                 Generate Report
             </button>
             <button onclick="clearInput()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-5 py-2 rounded font-medium transition">
@@ -97,19 +96,38 @@
             </button>
             
             <div class="flex items-center gap-2 ml-4 border-l pl-4 border-gray-300">
-                <input type="checkbox" id="showNetwork" class="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 cursor-pointer">
+                <input type="checkbox" id="showNetwork" onchange="updateDisplay()" class="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 cursor-pointer">
                 <label for="showNetwork" class="text-sm font-semibold text-gray-700 select-none cursor-pointer">Show Network Wise</label>
+            </div>
+
+            <!-- Filters Container (Initially Hidden) -->
+            <div id="filterContainer" class="hidden flex flex-wrap items-center gap-4 ml-4 border-l pl-4 border-gray-300">
+                <!-- Network Filter -->
+                <div class="flex items-center gap-2">
+                    <label for="networkFilter" class="text-sm font-semibold text-gray-700">Network:</label>
+                    <select id="networkFilter" onchange="updateDisplay()" class="text-sm border border-gray-300 rounded p-1 focus:ring-blue-500 bg-white max-w-[200px]">
+                        <option value="ALL">All Networks (Sum)</option>
+                        <option value="SEPARATE" class="font-bold text-blue-700">Show All Separate</option>
+                    </select>
+                </div>
+                <!-- Model Filter -->
+                <div class="flex items-center gap-2">
+                    <label for="modelFilter" class="text-sm font-semibold text-gray-700">Model:</label>
+                    <select id="modelFilter" onchange="updateDisplay()" class="text-sm border border-gray-300 rounded p-1 focus:ring-blue-500 bg-white max-w-[150px]">
+                        <option value="ALL">All Models</option>
+                    </select>
+                </div>
             </div>
         </div>
 
-        <!-- Debug Info -->
-        <div id="statusMsg" class="mt-3 text-sm font-medium h-5"></div>
-        <div id="debugInfo" class="hidden mt-2 text-xs text-blue-700 bg-blue-50 p-2 rounded border border-blue-200 font-mono"></div>
+        <!-- Status & Debug Messages -->
+        <div id="statusMsg" class="mt-3 text-sm font-medium h-5 text-blue-600"></div>
 
         <!-- Output Section (Initially Hidden) -->
         <div id="outputSection" class="hidden mt-6 border-t pt-6">
             <div class="flex justify-between items-center mb-3">
-                <h2 class="text-lg font-bold text-gray-700">Report Preview</h2>
+                <!-- Dynamic Title Here -->
+                <h2 id="reportTitle" class="text-lg font-bold text-gray-700">Report Preview (All)</h2>
                 <div class="flex gap-2">
                     <button onclick="copyTable()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-1.5 rounded text-sm transition flex items-center gap-1 shadow-sm">
                         <span>📋</span> Copy
@@ -119,8 +137,6 @@
                     </button>
                 </div>
             </div>
-
-            <div id="errorMsg" class="hidden p-3 mb-4 text-sm text-red-700 bg-red-100 rounded-lg border border-red-200" role="alert"></div>
 
             <div class="table-wrapper">
                 <table id="reportTable" class="text-sm text-left text-gray-700">
@@ -133,6 +149,8 @@
 
     <script>
         let finalGrid = []; 
+        let globalParsedData = []; 
+        let globalParsedRowsCount = 0;
 
         function parseRow(text, delimiter) {
             if (delimiter === '\t') return text.split('\t').map(c => c.trim().replace(/^"|"$/g, ''));
@@ -194,22 +212,22 @@
             return null;
         }
 
-        function generateReport() {
+        // STEP 1: Parse Data & Logic
+        function parseAndGenerate() {
             const input = document.getElementById('csvInput').value.trim();
-            const showNetwork = document.getElementById('showNetwork').checked;
             const statusDiv = document.getElementById('statusMsg');
-            const errorDiv = document.getElementById('errorMsg');
             const outputSection = document.getElementById('outputSection');
-
-            // Reset UI
-            statusDiv.innerHTML = "Processing...";
-            statusDiv.className = "mt-3 text-sm font-medium text-blue-600 h-5";
-            errorDiv.classList.add('hidden');
+            
+            // Reset
+            globalParsedData = [];
             outputSection.classList.add('hidden');
+            document.getElementById('filterContainer').classList.add('hidden');
+            statusDiv.innerText = "Processing...";
+            statusDiv.className = "mt-3 text-sm font-medium text-blue-600 h-5";
             
             if (!input) { 
                 alert("Please paste data!"); 
-                statusDiv.innerHTML = "";
+                statusDiv.innerText = "";
                 return; 
             }
 
@@ -234,13 +252,13 @@
 
             if (colVariant === -1 || colEnqNo === -1 || colDate === -1) {
                 alert(`Missing Columns! Variant: ${colVariant>-1}, EnqNo: ${colEnqNo>-1}, Date: ${colDate>-1}`);
-                statusDiv.innerHTML = "Error: Missing columns.";
+                statusDiv.innerText = "Error: Missing columns.";
                 statusDiv.className = "mt-3 text-sm font-medium text-red-600 h-5";
                 return;
             }
 
-            // --- DATA PARSING & CODE DETECTION ---
-            let parsedRows = [];
+            // --- PASS 1: SCAN FOR DOMINANT DEALER CODE ---
+            let rawData = [];
             let codeCounts = {};
             let mainDealerCode = null;
 
@@ -255,7 +273,6 @@
 
                 let extractedCode = tryExtractCode(enqNo);
                 
-                // Logic: Capture Main Dealer Code
                 if (netType.includes('main dealer') && extractedCode) {
                     mainDealerCode = extractedCode;
                 }
@@ -264,9 +281,10 @@
                     codeCounts[extractedCode] = (codeCounts[extractedCode] || 0) + 1;
                 }
                 
-                parsedRows.push({ variant, enqNo, rawDate, extractedCode });
+                rawData.push({ variant, enqNo, rawDate, extractedCode });
             }
 
+            // Determine Default Code
             let defaultCode = 'UP100003';
             if (mainDealerCode) {
                 defaultCode = mainDealerCode;
@@ -280,13 +298,11 @@
                 }
             }
 
-            // --- PIVOT LOGIC ---
-            let pivotData = {}; 
-            let allDatesMap = new Map();
-            let allKeys = new Set();
-            let validRows = 0;
+            // --- PASS 2: CLEAN & STORE ---
+            let uniqueNetworks = new Set();
+            let uniqueModels = new Set();
 
-            for (let rowObj of parsedRows) {
+            for (let rowObj of rawData) {
                 let { variant, enqNo, rawDate, extractedCode } = rowObj;
 
                 // Clean Variant
@@ -299,30 +315,110 @@
                 let dateObj = formatDate(rawDate);
                 if (!dateObj) continue;
 
-                validRows++;
-                if (!allDatesMap.has(dateObj.label)) allDatesMap.set(dateObj.label, dateObj.iso);
-
                 let finalNetCode = extractedCode || defaultCode;
-                let key = showNetwork ? `${finalNetCode}###${variant}` : variant;
-                allKeys.add(key);
+                uniqueNetworks.add(finalNetCode);
+                uniqueModels.add(variant);
 
-                if (!pivotData[key]) pivotData[key] = {};
-                if (!pivotData[key][dateObj.label]) pivotData[key][dateObj.label] = new Set();
-                pivotData[key][dateObj.label].add(enqNo);
+                globalParsedData.push({
+                    netCode: finalNetCode,
+                    variant: variant,
+                    dateLabel: dateObj.label,
+                    dateIso: dateObj.iso,
+                    enqNo: enqNo
+                });
             }
 
-            if (validRows === 0) {
-                statusDiv.innerHTML = "";
-                errorDiv.innerText = "Error: 0 valid rows processed. Check Date formats.";
-                errorDiv.classList.remove('hidden');
-                outputSection.classList.remove('hidden');
+            if (globalParsedData.length === 0) {
+                statusDiv.innerText = "Error: 0 valid rows processed. Check Date formats.";
+                statusDiv.className = "mt-3 text-sm font-medium text-red-600 h-5";
                 return;
             }
 
-            // Sorting
+            // Populate Filters
+            const netFilter = document.getElementById('networkFilter');
+            // Keep the static 'ALL' and 'SEPARATE' options, append dynamic ones
+            netFilter.innerHTML = `
+                <option value="ALL">All Networks (Sum)</option>
+                <option value="SEPARATE" class="font-bold text-blue-700">Show All Separate</option>
+            `;
+            Array.from(uniqueNetworks).sort().forEach(code => {
+                netFilter.add(new Option(code, code));
+            });
+
+            const modFilter = document.getElementById('modelFilter');
+            modFilter.innerHTML = '<option value="ALL">All Models</option>';
+            Array.from(uniqueModels).sort().forEach(mod => {
+                modFilter.add(new Option(mod, mod));
+            });
+
+            document.getElementById('filterContainer').classList.remove('hidden');
+
+            statusDiv.innerHTML = `✅ Ready! Main Dealer Code used: <b>${defaultCode}</b>.`;
+            statusDiv.className = "mt-3 text-sm font-medium text-green-700 h-5";
+
+            updateDisplay();
+        }
+
+        // STEP 2: Aggregate & Render
+        function updateDisplay() {
+            if (globalParsedData.length === 0) return;
+
+            const showNetworkCheckbox = document.getElementById('showNetwork').checked;
+            const netVal = document.getElementById('networkFilter').value;
+            const modVal = document.getElementById('modelFilter').value;
+            const outputSection = document.getElementById('outputSection');
+            const titleEl = document.getElementById('reportTitle');
+
+            // --- Logic for Network Wise View ---
+            // View is Network Wise IF: Checkbox is ON OR Network Filter is 'SEPARATE'
+            let isNetworkWiseView = showNetworkCheckbox || (netVal === 'SEPARATE');
+
+            // --- Update Title Logic ---
+            let titleParts = [];
+            if (netVal !== 'ALL' && netVal !== 'SEPARATE') titleParts.push(netVal);
+            else if (netVal === 'SEPARATE') titleParts.push("All Networks (Separate)");
+            
+            if (modVal !== 'ALL') titleParts.push(modVal);
+            
+            let titleSuffix = titleParts.length > 0 ? titleParts.join(' - ') : 'All';
+            titleEl.innerText = `Report Preview (${titleSuffix})`;
+
+            // --- Filtering Data ---
+            let filteredData = globalParsedData.filter(d => {
+                // Filter by Network:
+                // If ALL or SEPARATE -> Include All. 
+                // If specific code -> Include only that code.
+                let matchNet = (netVal === 'ALL' || netVal === 'SEPARATE') || (d.netCode === netVal);
+                
+                // Filter by Model:
+                let matchMod = (modVal === 'ALL') || (d.variant === modVal);
+                
+                return matchNet && matchMod;
+            });
+
+            // --- Aggregating Data (Pivot) ---
+            let pivotData = {}; 
+            let allDatesMap = new Map();
+            let allKeys = new Set();
+
+            filteredData.forEach(row => {
+                if (!allDatesMap.has(row.dateLabel)) allDatesMap.set(row.dateLabel, row.dateIso);
+
+                // If view is network wise, key includes netcode. Else just variant.
+                let key = isNetworkWiseView ? `${row.netCode}###${row.variant}` : row.variant;
+                allKeys.add(key);
+
+                if (!pivotData[key]) pivotData[key] = {};
+                if (!pivotData[key][row.dateLabel]) pivotData[key][row.dateLabel] = new Set();
+                pivotData[key][row.dateLabel].add(row.enqNo);
+            });
+
+            // Sorting Dates
             const sortedDates = Array.from(allDatesMap.keys()).sort((a, b) => allDatesMap.get(a) - allDatesMap.get(b));
+            
+            // Sorting Keys
             const sortedKeys = Array.from(allKeys).sort((a, b) => {
-                if (showNetwork) {
+                if (isNetworkWiseView) {
                     let [netA, varA] = a.split('###');
                     let [netB, varB] = b.split('###');
                     if (netA !== netB) return netA.localeCompare(netB);
@@ -331,43 +427,46 @@
                 return a.localeCompare(b);
             });
 
-            // Grid Construction
+            // --- Building Grid ---
             finalGrid = [];
-            let headerRow = showNetwork ? ['Network Code', 'Model Variant', ...sortedDates, 'Grand Total'] : ['Model Variant', ...sortedDates, 'Grand Total'];
+            // Header
+            let headerRow = isNetworkWiseView 
+                ? ['Network Code', 'Model Variant', ...sortedDates, 'Grand Total'] 
+                : ['Model Variant', ...sortedDates, 'Grand Total'];
             finalGrid.push(headerRow);
 
             let colTotals = new Array(sortedDates.length).fill(0);
             let grandTotalAll = 0;
 
             sortedKeys.forEach(key => {
-                let rowDisplay = showNetwork ? key.split('###') : [key];
+                let rowDisplay = isNetworkWiseView ? key.split('###') : [key];
                 let rowCounts = [];
                 let rowTotal = 0;
+                
                 sortedDates.forEach((date, idx) => {
                     let count = pivotData[key][date] ? pivotData[key][date].size : 0;
                     rowCounts.push(count === 0 ? '' : count);
                     if (count > 0) { rowTotal += count; colTotals[idx] += count; }
                 });
+                
                 finalGrid.push([...rowDisplay, ...rowCounts, rowTotal]);
                 grandTotalAll += rowTotal;
             });
 
-            let footerLabel = showNetwork ? ['Grand Total', ''] : ['Grand Total'];
+            // Footer
+            let footerLabel = isNetworkWiseView ? ['Grand Total', ''] : ['Grand Total'];
             finalGrid.push([...footerLabel, ...colTotals.map(t => t === 0 ? '' : t), grandTotalAll]);
 
-            renderTable(finalGrid, showNetwork);
+            renderTable(finalGrid, isNetworkWiseView);
             
             outputSection.classList.remove('hidden');
-            statusDiv.innerHTML = `✅ Report Ready! Main Dealer Code used for fixes: <b>${defaultCode}</b>.`;
-            statusDiv.className = "mt-3 text-sm font-medium text-green-700 h-5";
-            document.getElementById('stats').innerText = `Processed ${validRows} valid rows.`;
+            document.getElementById('stats').innerText = `Displaying ${filteredData.length} entries.`;
         }
 
         function renderTable(grid, isNetworkWise) {
             const table = document.getElementById('reportTable');
             table.innerHTML = '';
             
-            // Header
             const thead = document.createElement('thead');
             const trHead = document.createElement('tr');
             grid[0].forEach((cell, i) => {
@@ -383,7 +482,6 @@
             thead.appendChild(trHead);
             table.appendChild(thead);
 
-            // Body
             const tbody = document.createElement('tbody');
             for (let i = 1; i < grid.length - 1; i++) {
                 const tr = document.createElement('tr');
@@ -391,9 +489,9 @@
                     const tag = (j === 0 || (isNetworkWise && j === 1)) ? 'th' : 'td';
                     const el = document.createElement(tag);
                     
-                    if (j === 0) el.className = "sticky-col-1 text-left bg-gray-50";
+                    if (j === 0) el.className = "sticky-col-1 text-left bg-gray-50 font-medium text-gray-900";
                     if (isNetworkWise && j === 1) {
-                        el.className = "sticky-col-2 text-left bg-gray-50";
+                        el.className = "sticky-col-2 text-left bg-gray-50 font-medium text-gray-900";
                         el.style.left = "110px";
                     }
                     if (j > (isNetworkWise ? 1 : 0)) el.className = "text-center";
@@ -406,7 +504,6 @@
             }
             table.appendChild(tbody);
 
-            // Footer
             const tfoot = document.createElement('tfoot');
             const trFoot = document.createElement('tr');
             const lastRow = grid[grid.length - 1];
@@ -429,16 +526,31 @@
         function clearInput() {
             document.getElementById('csvInput').value = '';
             document.getElementById('outputSection').classList.add('hidden');
+            document.getElementById('filterContainer').classList.add('hidden');
             document.getElementById('statusMsg').innerText = '';
+            globalParsedData = [];
         }
 
         function exportCSV() {
             if (finalGrid.length === 0) return;
+            
+            // Get Current Filters for Filename
+            const netVal = document.getElementById('networkFilter').value;
+            const modVal = document.getElementById('modelFilter').value;
+            
+            let nameParts = [];
+            if (netVal === 'SEPARATE') nameParts.push('All_Networks_Sep');
+            else if (netVal !== 'ALL') nameParts.push(netVal);
+            
+            if (modVal !== 'ALL') nameParts.push(modVal.replace(/[^a-z0-9]/gi, '_')); 
+            
+            let suffix = nameParts.length > 0 ? nameParts.join('_') : 'All';
+
             let csvContent = "data:text/csv;charset=utf-8," + finalGrid.map(e => e.join(",")).join("\n");
             const encodedUri = encodeURI(csvContent);
             const link = document.createElement("a");
             link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "Enquiry_Matrix_Report.csv");
+            link.setAttribute("download", `Enquiry_Matrix_Report_${suffix}.csv`);
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
