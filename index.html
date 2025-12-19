@@ -11,7 +11,7 @@
             background-color: #f3f4f6;
         }
         .table-wrapper {
-            max-height: 600px; /* Table scrollable height */
+            max-height: 550px; /* Adjusted for tabs */
             overflow: auto;
             border: 1px solid #d1d5db;
             border-radius: 0.5rem;
@@ -140,6 +140,21 @@
         .email-btn { background: #EA4335; box-shadow: 0 0 10px rgba(234, 67, 53, 0.4); }
         .insta-btn { background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); box-shadow: 0 0 10px rgba(220, 39, 67, 0.4); }
         .close-contact { margin-top: 15px; background: #333; color: white; border: 1px solid #555; padding: 8px 20px; border-radius: 5px; cursor: pointer; }
+
+        /* Tabs Styles */
+        .tab-btn {
+            padding: 8px 16px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            font-weight: 600;
+            color: #6b7280;
+            transition: all 0.2s;
+        }
+        .tab-btn.active {
+            border-bottom-color: #2563eb;
+            color: #2563eb;
+            background-color: #eff6ff;
+        }
     </style>
 </head>
 <body class="p-6">
@@ -151,6 +166,8 @@
             
             <div class="developer-name">✨ Ambuj Garg ✨</div>
             
+            <p id="auto-close-msg" style="color: #aaa; font-size: 12px; margin-bottom: 10px; display: none;">Auto closing in 3...</p>
+
             <a href="https://wa.me/917017024586" target="_blank" class="social-btn whatsapp-btn">
                 <span style="font-size:20px">💬</span> Chat on WhatsApp
             </a>
@@ -183,8 +200,8 @@
         </div>
 
         <p class="text-sm text-gray-600 mb-4">
-            Paste your raw CSV/Excel data below. <<-----Ambujgarg_official<br>
-            This automatically detects if it's an <b>Enquiry Report</b> or <b>Invoice Report</b>).
+            Paste your raw CSV/Excel data below. <<---Ambujgarg_official<br>
+            The tool automatically detects if it's an <b>Enquiry Report</b> or <b>Invoice Report</b>.
         </p>
 
         <!-- Input Section (Big Box) -->
@@ -226,8 +243,15 @@
         <!-- Status & Debug Messages -->
         <div id="statusMsg" class="mt-3 text-sm font-medium h-5 text-blue-600"></div>
 
-        <!-- Output Section (Initially Hidden) -->
-        <div id="outputSection" class="hidden mt-6 border-t pt-6">
+        <!-- Tabs & Output Section (Initially Hidden) -->
+        <div id="outputSection" class="hidden mt-6 border-t pt-2">
+            
+            <!-- Tabs Navigation -->
+            <div id="tabsNav" class="flex border-b border-gray-200 mb-4 hidden">
+                <button onclick="switchTab('MAIN')" id="tabMain" class="tab-btn active">Enquiry Matrix</button>
+                <button onclick="switchTab('TEST_RIDE')" id="tabTestRide" class="tab-btn">Test Ride Report</button>
+            </div>
+
             <div class="flex justify-between items-center mb-3">
                 <!-- Dynamic Title Here -->
                 <h2 id="reportTitle" class="text-lg font-bold text-gray-700">Report Preview (All)</h2>
@@ -252,12 +276,57 @@
 
     <script>
         let finalGrid = []; 
-        let globalParsedData = []; 
-        let currentReportType = 'ENQUIRY'; // 'ENQUIRY' or 'INVOICE'
+        let globalParsedData = []; // Stores Main Data
+        let globalTestRideData = []; // Stores Test Ride 'Y' Data
+        let currentReportType = 'ENQUIRY'; 
+        let activeTab = 'MAIN'; // 'MAIN' or 'TEST_RIDE'
+        let autoCloseTimer = null;
 
         // --- Creator Info Functions ---
-        function showContact() { document.getElementById('contact-screen').style.display = 'flex'; }
-        function hideContact() { document.getElementById('contact-screen').style.display = 'none'; }
+        function showContact(isAuto = false) { 
+            const screen = document.getElementById('contact-screen');
+            const msgEl = document.getElementById('auto-close-msg');
+            screen.style.display = 'flex'; 
+            
+            if (autoCloseTimer) clearInterval(autoCloseTimer);
+            msgEl.style.display = 'none';
+
+            if (isAuto) {
+                msgEl.style.display = 'block';
+                let timeLeft = 5;
+                msgEl.innerText = `Auto closing in ${timeLeft}...`;
+                
+                autoCloseTimer = setInterval(() => {
+                    timeLeft--;
+                    if (timeLeft <= 0) {
+                        clearInterval(autoCloseTimer);
+                        hideContact();
+                    } else {
+                        msgEl.innerText = `Auto closing in ${timeLeft}...`;
+                    }
+                }, 1000);
+            }
+        }
+
+        function hideContact() { 
+            document.getElementById('contact-screen').style.display = 'none'; 
+            if (autoCloseTimer) clearInterval(autoCloseTimer);
+        }
+
+        // Initialize on load
+        window.onload = function() {
+            showContact(true);
+        };
+
+        function switchTab(tabName) {
+            activeTab = tabName;
+            
+            // Update UI
+            document.getElementById('tabMain').classList.toggle('active', tabName === 'MAIN');
+            document.getElementById('tabTestRide').classList.toggle('active', tabName === 'TEST_RIDE');
+            
+            updateDisplay();
+        }
 
         function parseRow(text, delimiter) {
             if (delimiter === '\t') return text.split('\t').map(c => c.trim().replace(/^"|"$/g, ''));
@@ -310,7 +379,6 @@
             return { index: -1, keyword: null };
         }
 
-        // Logic specifically for extracting code from Enquiry Number string (e.g. VEHENQ-UP100003...)
         function extractCodeFromEnquiryString(enqNo) {
             if (!enqNo) return null;
             const parts = enqNo.split('-');
@@ -328,10 +396,14 @@
             
             // Reset
             globalParsedData = [];
+            globalTestRideData = [];
             outputSection.classList.add('hidden');
             document.getElementById('filterContainer').classList.add('hidden');
             statusDiv.innerText = "Processing...";
             statusDiv.className = "mt-3 text-sm font-medium text-blue-600 h-5";
+            activeTab = 'MAIN'; // Reset to main tab
+            document.getElementById('tabMain').classList.add('active');
+            document.getElementById('tabTestRide').classList.remove('active');
             
             if (!input) { 
                 alert("Please paste data!"); 
@@ -350,42 +422,36 @@
             const headers = parseRow(lines[0], delimiter).map(h => h.toLowerCase());
 
             // --- AUTO DETECTION LOGIC ---
-            
-            // 1. Identify Common Column (Model Variant)
             const colVariant = getColumnIndex(headers, ['model variant', 'variant', 'model name']).index;
-
-            // 2. Identify Enquiry Columns
             const colEnqNo = getColumnIndex(headers, ['enquiry number', 'enq no', 'enquiry no']).index;
             let colEnqDate = getColumnIndex(headers, ['enquiry created date', 'created date', 'created on']).index;
             if (colEnqDate === -1) colEnqDate = getColumnIndex(headers, ['date']).index;
 
-            // 3. Identify Invoice Columns
             const colInvNo = getColumnIndex(headers, ['invoice #', 'invoice no', 'invoice number']).index;
             const colInvDate = getColumnIndex(headers, ['invoice date']).index;
             const colBillingCode = getColumnIndex(headers, ['billing network code']).index;
+            
+            // New: Test Ride Column Detection
+            const colTestRide = getColumnIndex(headers, ['test ride flag', 'test ride']).index;
 
-            // Decision Matrix
-            let colID = -1; // Either Enquiry No or Invoice No
-            let colDate = -1; // Either Created Date or Invoice Date
-            let colNetSource = -1; // Network Type (Enquiry) or Billing Code (Invoice)
+            let colID = -1; 
+            let colDate = -1;
+            let colNetSource = -1; 
             
             if (colInvNo > -1 && colInvDate > -1) {
-                // INVOICE MODE
                 currentReportType = 'INVOICE';
                 colID = colInvNo;
                 colDate = colInvDate;
                 colNetSource = colBillingCode; 
+                document.getElementById('tabsNav').classList.add('hidden'); // Hide tabs for Invoice
             } else if (colEnqNo > -1 && colEnqDate > -1) {
-                // ENQUIRY MODE
                 currentReportType = 'ENQUIRY';
                 colID = colEnqNo;
                 colDate = colEnqDate;
-                // For Enquiry, we check 'Network Type' to find 'Main Dealer' rows
                 colNetSource = getColumnIndex(headers, ['network type', 'dealer type']).index; 
+                document.getElementById('tabsNav').classList.remove('hidden'); // Show tabs for Enquiry
             } else {
-                alert("Could not detect data type!\nNeed either:\n1. Enquiry Number + Enquiry Created Date\nOR\n2. Invoice # + Invoice Date");
-                statusDiv.innerText = "Error: Unknown data format.";
-                statusDiv.className = "mt-3 text-sm font-medium text-red-600 h-5";
+                alert("Could not detect data type!");
                 return;
             }
 
@@ -396,7 +462,7 @@
 
             statusDiv.innerText = `Detected Mode: ${currentReportType}. Parsing...`;
 
-            // --- PASS 1: SCAN FOR DOMINANT DEALER CODE (Mainly for Enquiry Mode Fallback) ---
+            // --- PASS 1: SCAN FOR DOMINANT DEALER CODE ---
             let rawData = [];
             let codeCounts = {};
             let mainDealerCode = null;
@@ -406,47 +472,38 @@
                 if (!row[colVariant] || !row[colID]) continue;
 
                 let variant = row[colVariant].trim();
-                let uniqueID = row[colID].trim(); // Enq No or Inv No
+                let uniqueID = row[colID].trim(); 
                 let rawDate = row[colDate] ? row[colDate].trim() : '';
                 
+                // Extract Test Ride Flag (only for Enquiry)
+                let isTestRide = false;
+                if (currentReportType === 'ENQUIRY' && colTestRide > -1 && row[colTestRide]) {
+                    if (row[colTestRide].trim().toUpperCase() === 'Y') isTestRide = true;
+                }
+
                 let extractedCode = null;
 
                 if (currentReportType === 'INVOICE') {
-                    // --- STRICT LOGIC FOR INVOICE ---
-                    // Must have a value in Billing Network Code column
-                    if (colNetSource === -1 || !row[colNetSource] || row[colNetSource].trim() === '') {
-                        continue; // Skip this row entirely
-                    }
+                    if (colNetSource === -1 || !row[colNetSource] || row[colNetSource].trim() === '') continue; 
                     extractedCode = row[colNetSource].trim().toUpperCase();
                 } else {
-                    // --- LOGIC FOR ENQUIRY ---
                     let netType = (colNetSource > -1 && row[colNetSource]) ? row[colNetSource].trim().toLowerCase() : '';
                     extractedCode = extractCodeFromEnquiryString(uniqueID);
-                    
-                    if (netType.includes('main dealer') && extractedCode) {
-                        mainDealerCode = extractedCode;
-                    }
+                    if (netType.includes('main dealer') && extractedCode) mainDealerCode = extractedCode;
                 }
                 
-                if (extractedCode) {
-                    codeCounts[extractedCode] = (codeCounts[extractedCode] || 0) + 1;
-                }
+                if (extractedCode) codeCounts[extractedCode] = (codeCounts[extractedCode] || 0) + 1;
                 
-                rawData.push({ variant, uniqueID, rawDate, extractedCode });
+                rawData.push({ variant, uniqueID, rawDate, extractedCode, isTestRide });
             }
 
-            // Determine Default Code (Used if extraction fails in Enquiry mode)
             let defaultCode = 'UP100003';
             if (currentReportType === 'ENQUIRY') {
-                if (mainDealerCode) {
-                    defaultCode = mainDealerCode;
-                } else {
+                if (mainDealerCode) defaultCode = mainDealerCode;
+                else {
                     let maxCount = 0;
                     for (const [code, count] of Object.entries(codeCounts)) {
-                        if (count > maxCount) {
-                            maxCount = count;
-                            defaultCode = code;
-                        }
+                        if (count > maxCount) { maxCount = count; defaultCode = code; }
                     }
                 }
             }
@@ -456,7 +513,7 @@
             let uniqueModels = new Set();
 
             for (let rowObj of rawData) {
-                let { variant, uniqueID, rawDate, extractedCode } = rowObj;
+                let { variant, uniqueID, rawDate, extractedCode, isTestRide } = rowObj;
 
                 // Clean Variant
                 variant = variant.replace(/(\s+|-)?OBD2[B]?[0-9]*\b/gi, '').trim();
@@ -468,49 +525,51 @@
                 let dateObj = formatDate(rawDate);
                 if (!dateObj) continue;
 
-                // For Invoice, extractedCode is guaranteed. For Enquiry, fallback to default.
                 let finalNetCode = extractedCode || defaultCode;
                 
                 uniqueNetworks.add(finalNetCode);
                 uniqueModels.add(variant);
 
-                globalParsedData.push({
+                let parsedRow = {
                     netCode: finalNetCode,
                     variant: variant,
                     dateLabel: dateObj.label,
                     dateIso: dateObj.iso,
                     id: uniqueID
-                });
+                };
+
+                // Add to Global Data
+                globalParsedData.push(parsedRow);
+
+                // Add to Test Ride Data if applicable
+                if (isTestRide) {
+                    globalTestRideData.push(parsedRow);
+                }
             }
 
             if (globalParsedData.length === 0) {
-                statusDiv.innerText = "Error: 0 valid rows processed. Check Date formats or Empty Billing Codes.";
+                statusDiv.innerText = "Error: 0 valid rows processed.";
                 statusDiv.className = "mt-3 text-sm font-medium text-red-600 h-5";
                 return;
             }
 
             // Populate Filters
             const netFilter = document.getElementById('networkFilter');
-            netFilter.innerHTML = `
-                <option value="ALL">All Networks (Sum)</option>
-                <option value="SEPARATE" class="font-bold text-blue-700">Show All Separate</option>
-            `;
-            Array.from(uniqueNetworks).sort().forEach(code => {
-                netFilter.add(new Option(code, code));
-            });
+            netFilter.innerHTML = `<option value="ALL">All Networks (Sum)</option><option value="SEPARATE" class="font-bold text-blue-700">Show All Separate</option>`;
+            Array.from(uniqueNetworks).sort().forEach(code => netFilter.add(new Option(code, code)));
 
             const modFilter = document.getElementById('modelFilter');
             modFilter.innerHTML = '<option value="ALL">All Models</option>';
-            Array.from(uniqueModels).sort().forEach(mod => {
-                modFilter.add(new Option(mod, mod));
-            });
+            Array.from(uniqueModels).sort().forEach(mod => modFilter.add(new Option(mod, mod)));
 
             document.getElementById('filterContainer').classList.remove('hidden');
 
             if (currentReportType === 'INVOICE') {
-                statusDiv.innerHTML = `✅ <b>INVOICE REPORT</b> Generated. Skipped rows with empty Billing Codes.`;
+                statusDiv.innerHTML = `✅ <b>INVOICE REPORT</b> Generated.`;
             } else {
-                statusDiv.innerHTML = `✅ <b>ENQUIRY REPORT</b> Generated. Default Code: <b>${defaultCode}</b>.`;
+                // Count unique IDs in Test Ride Data for status message
+                let uniqueTR = new Set(globalTestRideData.map(r => r.id)).size;
+                statusDiv.innerHTML = `✅ <b>ENQUIRY REPORT</b> Generated. Found ${uniqueTR} Unique Test Rides.`;
             }
             statusDiv.className = "mt-3 text-sm font-medium text-green-700 h-5";
 
@@ -519,7 +578,15 @@
 
         // STEP 2: Aggregate & Render
         function updateDisplay() {
-            if (globalParsedData.length === 0) return;
+            // Choose dataset based on active tab
+            let sourceData = (activeTab === 'TEST_RIDE') ? globalTestRideData : globalParsedData;
+
+            if (sourceData.length === 0 && activeTab === 'TEST_RIDE') {
+                document.getElementById('reportTable').innerHTML = '<tr><td class="text-center p-4 text-gray-500">No Test Rides Found (Flag "Y" missing)</td></tr>';
+                document.getElementById('stats').innerText = '';
+                document.getElementById('reportTitle').innerText = 'Test Ride Report (Empty)';
+                return;
+            }
 
             const showNetworkCheckbox = document.getElementById('showNetwork').checked;
             const netVal = document.getElementById('networkFilter').value;
@@ -532,17 +599,18 @@
 
             // Title Logic
             let typeLabel = currentReportType === 'ENQUIRY' ? 'Enquiry' : 'Invoice';
+            if (activeTab === 'TEST_RIDE') typeLabel = 'Test Ride';
+
             let titleParts = [];
             if (netVal !== 'ALL' && netVal !== 'SEPARATE') titleParts.push(netVal);
             else if (netVal === 'SEPARATE') titleParts.push("All Networks (Sep)");
-            
             if (modVal !== 'ALL') titleParts.push(modVal);
             
             let titleSuffix = titleParts.length > 0 ? titleParts.join(' - ') : 'All';
             titleEl.innerText = `${typeLabel} Matrix Preview (${titleSuffix})`;
 
             // Filtering
-            let filteredData = globalParsedData.filter(d => {
+            let filteredData = sourceData.filter(d => {
                 let matchNet = (netVal === 'ALL' || netVal === 'SEPARATE') || (d.netCode === netVal);
                 let matchMod = (modVal === 'ALL') || (d.variant === modVal);
                 return matchNet && matchMod;
@@ -555,10 +623,8 @@
 
             filteredData.forEach(row => {
                 if (!allDatesMap.has(row.dateLabel)) allDatesMap.set(row.dateLabel, row.dateIso);
-
                 let key = isNetworkWiseView ? `${row.netCode}###${row.variant}` : row.variant;
                 allKeys.add(key);
-
                 if (!pivotData[key]) pivotData[key] = {};
                 if (!pivotData[key][row.dateLabel]) pivotData[key][row.dateLabel] = new Set();
                 pivotData[key][row.dateLabel].add(row.id);
@@ -673,7 +739,9 @@
             document.getElementById('outputSection').classList.add('hidden');
             document.getElementById('filterContainer').classList.add('hidden');
             document.getElementById('statusMsg').innerText = '';
+            document.getElementById('tabsNav').classList.add('hidden');
             globalParsedData = [];
+            globalTestRideData = [];
         }
 
         function exportCSV() {
@@ -690,6 +758,7 @@
             
             let suffix = nameParts.length > 0 ? nameParts.join('_') : 'All';
             let typePrefix = currentReportType === 'ENQUIRY' ? 'Enquiry' : 'Invoice';
+            if (activeTab === 'TEST_RIDE') typePrefix = 'Test_Ride';
 
             let csvContent = "data:text/csv;charset=utf-8," + finalGrid.map(e => e.join(",")).join("\n");
             const encodedUri = encodeURI(csvContent);
