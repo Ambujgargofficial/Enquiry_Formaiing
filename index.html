@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enquiry Matrix Report Generator</title>
+    <title>Universal Matrix Report Generator</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -76,16 +76,119 @@
         tfoot td.sticky-col-1 { z-index: 30; background-color: #fde68a; }
 
         tbody tr:hover td { background-color: #eff6ff; }
+
+        /* --- Creator & Contact Styles (From Game) --- */
+        .creator-container {
+            display: flex; flex-direction: row; align-items: center;
+            justify-content: center; gap: 10px;
+            background: #111; /* Dark background so neon pops on light tool */
+            padding: 6px 15px;
+            border-radius: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        .creator-text {
+            font-size: 14px; font-family: 'Brush Script MT', cursive;
+            background: linear-gradient(90deg, #00ffff, #39ff14);
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+            text-shadow: 0 0 8px rgba(57, 255, 20, 0.3); letter-spacing: 1px;
+            opacity: 0.9; animation: pulse 3s infinite;
+            margin: 0;
+        }
+        @keyframes pulse { 0% { text-shadow: 0 0 5px rgba(57, 255, 20, 0.3); } 50% { text-shadow: 0 0 15px rgba(0, 255, 255, 0.6); } }
+
+        .info-btn {
+            width: 20px; height: 20px; border-radius: 50%; border: 2px solid white;
+            color: white; background: transparent; font-family: 'Verdana', sans-serif;
+            font-weight: bold; font-size: 12px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; transition: all 0.3s;
+            box-shadow: 0 0 5px rgba(255,255,255,0.5);
+            text-decoration: none;
+        }
+        .info-btn:hover { background: white; color: black; box-shadow: 0 0 10px white; }
+
+        /* Overlay */
+        .overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(10, 10, 10, 0.98);
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 100;
+        }
+        .menu-box {
+            background: rgba(20, 20, 20, 0.9);
+            border: 2px solid #00ffff; /* Neon Blue Border */
+            box-shadow: 0 0 30px #00ffff;
+            padding: 20px; border-radius: 15px;
+            text-align: center; width: 90%; max-width: 320px; position: relative;
+        }
+        .developer-name {
+            font-size: 18px; font-weight: bold;
+            background: linear-gradient(45deg, #ff0000, #ff7300, #fffb00, #48ff00, #00ffd5, #002bff, #7a00ff, #ff00c8, #ff0000);
+            background-size: 400%; -webkit-background-clip: text; color: transparent;
+            animation: glowing 10s linear infinite; margin-bottom: 20px; display: inline-block;
+        }
+        @keyframes glowing { 0% {background-position: 0 0;} 100% {background-position: 400% 0;} }
+
+        .social-btn {
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            width: 100%; padding: 10px; margin: 8px 0;
+            border-radius: 8px; text-decoration: none; font-weight: bold; color: white;
+            transition: transform 0.2s; box-sizing: border-box;
+            font-family: sans-serif;
+        }
+        .social-btn:active { transform: scale(0.95); }
+        .whatsapp-btn { background: #25D366; box-shadow: 0 0 10px rgba(37, 211, 102, 0.4); }
+        .email-btn { background: #EA4335; box-shadow: 0 0 10px rgba(234, 67, 53, 0.4); }
+        .insta-btn { background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); box-shadow: 0 0 10px rgba(220, 39, 67, 0.4); }
+        .close-contact { margin-top: 15px; background: #333; color: white; border: 1px solid #555; padding: 8px 20px; border-radius: 5px; cursor: pointer; }
     </style>
 </head>
 <body class="p-6">
 
-    <div class="max-w-7xl mx-auto bg-white p-6 rounded-lg shadow-lg">
-        <h1 class="text-2xl font-bold mb-4 text-gray-800">📊 Daily Enquiry Matrix Report</h1>
-        <p class="text-sm text-gray-600 mb-4">Paste your raw CSV data below. <------ : @Ambujgarg_official </p>
+    <!-- Contact Overlay (Hidden by default) -->
+    <div id="contact-screen" class="overlay">
+        <div class="menu-box">
+            <h2 style="color:white; margin-top:0; font-family: sans-serif;">Developer Info</h2>
+            
+            <div class="developer-name">✨ Ambuj Garg ✨</div>
+            
+            <a href="https://wa.me/917017024586" target="_blank" class="social-btn whatsapp-btn">
+                <span style="font-size:20px">💬</span> Chat on WhatsApp
+            </a>
 
-        <!-- Input Section (Big Box Restored) -->
-        <textarea id="csvInput" class="w-full h-48 p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 text-xs font-mono" placeholder="Paste CSV/Excel data here... (Headers: Model Variant, Enquiry Number, Enquiry Created Date, Network Type)"></textarea>
+            <a href="mailto:ambujgarg.2011@rediffmail.com" class="social-btn email-btn">
+                <span style="font-size:20px">✉️</span> Email Us
+            </a>
+            
+            <a href="https://www.instagram.com/ambujgarg_official?igsh=NHF3aGw2M3E3OTln" target="_blank" class="social-btn insta-btn">
+                <span style="font-size:20px">📸</span> Follow on Instagram
+            </a>
+
+            <button class="close-contact" onclick="hideContact()">Close</button>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto bg-white p-6 rounded-lg shadow-lg">
+        <!-- Header Row with Creator Badge -->
+        <div class="flex justify-between items-start mb-4">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">📊 Universal Matrix Report</h1>
+                <p class="text-xs text-gray-500 mt-1">(Enquiry & Invoice)</p>
+            </div>
+            
+            <!-- Creator Badge inserted here -->
+            <div class="creator-container">
+                <div class="creator-text">Created By : Ambuj Garg</div>
+                <button class="info-btn" onclick="showContact()">i</button>
+            </div>
+        </div>
+
+        <p class="text-sm text-gray-600 mb-4">
+            Paste your raw CSV/Excel data below.<br>
+            The tool automatically detects if it's an <b>Enquiry Report</b> (uses <i>Enquiry Number</i>) or <b>Invoice Report</b> (uses <i>Invoice #</i>).
+        </p>
+
+        <!-- Input Section (Big Box) -->
+        <textarea id="csvInput" class="w-full h-48 p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 text-xs font-mono" placeholder="Paste data here..."></textarea>
         
         <div class="flex flex-wrap items-center gap-4 mt-4">
             <button onclick="parseAndGenerate()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded font-medium transition shadow-sm">
@@ -150,7 +253,11 @@
     <script>
         let finalGrid = []; 
         let globalParsedData = []; 
-        let globalParsedRowsCount = 0;
+        let currentReportType = 'ENQUIRY'; // 'ENQUIRY' or 'INVOICE'
+
+        // --- Creator Info Functions ---
+        function showContact() { document.getElementById('contact-screen').style.display = 'flex'; }
+        function hideContact() { document.getElementById('contact-screen').style.display = 'none'; }
 
         function parseRow(text, delimiter) {
             if (delimiter === '\t') return text.split('\t').map(c => c.trim().replace(/^"|"$/g, ''));
@@ -203,7 +310,8 @@
             return { index: -1, keyword: null };
         }
 
-        function tryExtractCode(enqNo) {
+        // Logic specifically for extracting code from Enquiry Number string (e.g. VEHENQ-UP100003...)
+        function extractCodeFromEnquiryString(enqNo) {
             if (!enqNo) return null;
             const parts = enqNo.split('-');
             if (parts.length > 1 && parts[1] && parts[1].toUpperCase().startsWith('UP')) {
@@ -241,59 +349,104 @@
 
             const headers = parseRow(lines[0], delimiter).map(h => h.toLowerCase());
 
-            const colVariant = getColumnIndex(headers, ['model variant', 'variant', 'model name']).index;
-            const colEnqNo = getColumnIndex(headers, ['enquiry number', 'enq no', 'enquiry no']).index;
+            // --- AUTO DETECTION LOGIC ---
             
-            let dateRes = getColumnIndex(headers, ['enquiry created date', 'created date', 'created on']);
-            let colDate = dateRes.index;
-            if (colDate === -1) colDate = getColumnIndex(headers, ['date']).index;
+            // 1. Identify Common Column (Model Variant)
+            const colVariant = getColumnIndex(headers, ['model variant', 'variant', 'model name']).index;
 
-            const colNetType = getColumnIndex(headers, ['network type', 'dealer type']).index;
+            // 2. Identify Enquiry Columns
+            const colEnqNo = getColumnIndex(headers, ['enquiry number', 'enq no', 'enquiry no']).index;
+            let colEnqDate = getColumnIndex(headers, ['enquiry created date', 'created date', 'created on']).index;
+            if (colEnqDate === -1) colEnqDate = getColumnIndex(headers, ['date']).index;
 
-            if (colVariant === -1 || colEnqNo === -1 || colDate === -1) {
-                alert(`Missing Columns! Variant: ${colVariant>-1}, EnqNo: ${colEnqNo>-1}, Date: ${colDate>-1}`);
-                statusDiv.innerText = "Error: Missing columns.";
+            // 3. Identify Invoice Columns
+            const colInvNo = getColumnIndex(headers, ['invoice #', 'invoice no', 'invoice number']).index;
+            const colInvDate = getColumnIndex(headers, ['invoice date']).index;
+            const colBillingCode = getColumnIndex(headers, ['billing network code']).index;
+
+            // Decision Matrix
+            let colID = -1; // Either Enquiry No or Invoice No
+            let colDate = -1; // Either Created Date or Invoice Date
+            let colNetSource = -1; // Network Type (Enquiry) or Billing Code (Invoice)
+            
+            if (colInvNo > -1 && colInvDate > -1) {
+                // INVOICE MODE
+                currentReportType = 'INVOICE';
+                colID = colInvNo;
+                colDate = colInvDate;
+                colNetSource = colBillingCode; 
+            } else if (colEnqNo > -1 && colEnqDate > -1) {
+                // ENQUIRY MODE
+                currentReportType = 'ENQUIRY';
+                colID = colEnqNo;
+                colDate = colEnqDate;
+                // For Enquiry, we check 'Network Type' to find 'Main Dealer' rows
+                colNetSource = getColumnIndex(headers, ['network type', 'dealer type']).index; 
+            } else {
+                alert("Could not detect data type!\nNeed either:\n1. Enquiry Number + Enquiry Created Date\nOR\n2. Invoice # + Invoice Date");
+                statusDiv.innerText = "Error: Unknown data format.";
                 statusDiv.className = "mt-3 text-sm font-medium text-red-600 h-5";
                 return;
             }
 
-            // --- PASS 1: SCAN FOR DOMINANT DEALER CODE ---
+            if (colVariant === -1) {
+                alert("Missing 'Model Variant' column.");
+                return;
+            }
+
+            statusDiv.innerText = `Detected Mode: ${currentReportType}. Parsing...`;
+
+            // --- PASS 1: SCAN FOR DOMINANT DEALER CODE (Mainly for Enquiry Mode Fallback) ---
             let rawData = [];
             let codeCounts = {};
             let mainDealerCode = null;
 
             for (let i = 1; i < lines.length; i++) {
                 let row = parseRow(lines[i], delimiter);
-                if (!row[colVariant] || !row[colEnqNo]) continue;
+                if (!row[colVariant] || !row[colID]) continue;
 
                 let variant = row[colVariant].trim();
-                let enqNo = row[colEnqNo].trim();
+                let uniqueID = row[colID].trim(); // Enq No or Inv No
                 let rawDate = row[colDate] ? row[colDate].trim() : '';
-                let netType = (colNetType > -1 && row[colNetType]) ? row[colNetType].trim().toLowerCase() : '';
-
-                let extractedCode = tryExtractCode(enqNo);
                 
-                if (netType.includes('main dealer') && extractedCode) {
-                    mainDealerCode = extractedCode;
+                let extractedCode = null;
+
+                if (currentReportType === 'INVOICE') {
+                    // --- STRICT LOGIC FOR INVOICE ---
+                    // Must have a value in Billing Network Code column
+                    if (colNetSource === -1 || !row[colNetSource] || row[colNetSource].trim() === '') {
+                        continue; // Skip this row entirely
+                    }
+                    extractedCode = row[colNetSource].trim().toUpperCase();
+                } else {
+                    // --- LOGIC FOR ENQUIRY ---
+                    let netType = (colNetSource > -1 && row[colNetSource]) ? row[colNetSource].trim().toLowerCase() : '';
+                    extractedCode = extractCodeFromEnquiryString(uniqueID);
+                    
+                    if (netType.includes('main dealer') && extractedCode) {
+                        mainDealerCode = extractedCode;
+                    }
                 }
                 
                 if (extractedCode) {
                     codeCounts[extractedCode] = (codeCounts[extractedCode] || 0) + 1;
                 }
                 
-                rawData.push({ variant, enqNo, rawDate, extractedCode });
+                rawData.push({ variant, uniqueID, rawDate, extractedCode });
             }
 
-            // Determine Default Code
+            // Determine Default Code (Used if extraction fails in Enquiry mode)
             let defaultCode = 'UP100003';
-            if (mainDealerCode) {
-                defaultCode = mainDealerCode;
-            } else {
-                let maxCount = 0;
-                for (const [code, count] of Object.entries(codeCounts)) {
-                    if (count > maxCount) {
-                        maxCount = count;
-                        defaultCode = code;
+            if (currentReportType === 'ENQUIRY') {
+                if (mainDealerCode) {
+                    defaultCode = mainDealerCode;
+                } else {
+                    let maxCount = 0;
+                    for (const [code, count] of Object.entries(codeCounts)) {
+                        if (count > maxCount) {
+                            maxCount = count;
+                            defaultCode = code;
+                        }
                     }
                 }
             }
@@ -303,7 +456,7 @@
             let uniqueModels = new Set();
 
             for (let rowObj of rawData) {
-                let { variant, enqNo, rawDate, extractedCode } = rowObj;
+                let { variant, uniqueID, rawDate, extractedCode } = rowObj;
 
                 // Clean Variant
                 variant = variant.replace(/(\s+|-)?OBD2[B]?[0-9]*\b/gi, '').trim();
@@ -315,7 +468,9 @@
                 let dateObj = formatDate(rawDate);
                 if (!dateObj) continue;
 
+                // For Invoice, extractedCode is guaranteed. For Enquiry, fallback to default.
                 let finalNetCode = extractedCode || defaultCode;
+                
                 uniqueNetworks.add(finalNetCode);
                 uniqueModels.add(variant);
 
@@ -324,19 +479,18 @@
                     variant: variant,
                     dateLabel: dateObj.label,
                     dateIso: dateObj.iso,
-                    enqNo: enqNo
+                    id: uniqueID
                 });
             }
 
             if (globalParsedData.length === 0) {
-                statusDiv.innerText = "Error: 0 valid rows processed. Check Date formats.";
+                statusDiv.innerText = "Error: 0 valid rows processed. Check Date formats or Empty Billing Codes.";
                 statusDiv.className = "mt-3 text-sm font-medium text-red-600 h-5";
                 return;
             }
 
             // Populate Filters
             const netFilter = document.getElementById('networkFilter');
-            // Keep the static 'ALL' and 'SEPARATE' options, append dynamic ones
             netFilter.innerHTML = `
                 <option value="ALL">All Networks (Sum)</option>
                 <option value="SEPARATE" class="font-bold text-blue-700">Show All Separate</option>
@@ -353,7 +507,11 @@
 
             document.getElementById('filterContainer').classList.remove('hidden');
 
-            statusDiv.innerHTML = `✅ Ready! Main Dealer Code used: <b>${defaultCode}</b>.`;
+            if (currentReportType === 'INVOICE') {
+                statusDiv.innerHTML = `✅ <b>INVOICE REPORT</b> Generated. Skipped rows with empty Billing Codes.`;
+            } else {
+                statusDiv.innerHTML = `✅ <b>ENQUIRY REPORT</b> Generated. Default Code: <b>${defaultCode}</b>.`;
+            }
             statusDiv.className = "mt-3 text-sm font-medium text-green-700 h-5";
 
             updateDisplay();
@@ -369,34 +527,28 @@
             const outputSection = document.getElementById('outputSection');
             const titleEl = document.getElementById('reportTitle');
 
-            // --- Logic for Network Wise View ---
-            // View is Network Wise IF: Checkbox is ON OR Network Filter is 'SEPARATE'
+            // View Logic
             let isNetworkWiseView = showNetworkCheckbox || (netVal === 'SEPARATE');
 
-            // --- Update Title Logic ---
+            // Title Logic
+            let typeLabel = currentReportType === 'ENQUIRY' ? 'Enquiry' : 'Invoice';
             let titleParts = [];
             if (netVal !== 'ALL' && netVal !== 'SEPARATE') titleParts.push(netVal);
-            else if (netVal === 'SEPARATE') titleParts.push("All Networks (Separate)");
+            else if (netVal === 'SEPARATE') titleParts.push("All Networks (Sep)");
             
             if (modVal !== 'ALL') titleParts.push(modVal);
             
             let titleSuffix = titleParts.length > 0 ? titleParts.join(' - ') : 'All';
-            titleEl.innerText = `Report Preview (${titleSuffix})`;
+            titleEl.innerText = `${typeLabel} Matrix Preview (${titleSuffix})`;
 
-            // --- Filtering Data ---
+            // Filtering
             let filteredData = globalParsedData.filter(d => {
-                // Filter by Network:
-                // If ALL or SEPARATE -> Include All. 
-                // If specific code -> Include only that code.
                 let matchNet = (netVal === 'ALL' || netVal === 'SEPARATE') || (d.netCode === netVal);
-                
-                // Filter by Model:
                 let matchMod = (modVal === 'ALL') || (d.variant === modVal);
-                
                 return matchNet && matchMod;
             });
 
-            // --- Aggregating Data (Pivot) ---
+            // Pivot Logic
             let pivotData = {}; 
             let allDatesMap = new Map();
             let allKeys = new Set();
@@ -404,19 +556,16 @@
             filteredData.forEach(row => {
                 if (!allDatesMap.has(row.dateLabel)) allDatesMap.set(row.dateLabel, row.dateIso);
 
-                // If view is network wise, key includes netcode. Else just variant.
                 let key = isNetworkWiseView ? `${row.netCode}###${row.variant}` : row.variant;
                 allKeys.add(key);
 
                 if (!pivotData[key]) pivotData[key] = {};
                 if (!pivotData[key][row.dateLabel]) pivotData[key][row.dateLabel] = new Set();
-                pivotData[key][row.dateLabel].add(row.enqNo);
+                pivotData[key][row.dateLabel].add(row.id);
             });
 
-            // Sorting Dates
+            // Sorting
             const sortedDates = Array.from(allDatesMap.keys()).sort((a, b) => allDatesMap.get(a) - allDatesMap.get(b));
-            
-            // Sorting Keys
             const sortedKeys = Array.from(allKeys).sort((a, b) => {
                 if (isNetworkWiseView) {
                     let [netA, varA] = a.split('###');
@@ -427,9 +576,8 @@
                 return a.localeCompare(b);
             });
 
-            // --- Building Grid ---
+            // Build Grid
             finalGrid = [];
-            // Header
             let headerRow = isNetworkWiseView 
                 ? ['Network Code', 'Model Variant', ...sortedDates, 'Grand Total'] 
                 : ['Model Variant', ...sortedDates, 'Grand Total'];
@@ -442,18 +590,15 @@
                 let rowDisplay = isNetworkWiseView ? key.split('###') : [key];
                 let rowCounts = [];
                 let rowTotal = 0;
-                
                 sortedDates.forEach((date, idx) => {
                     let count = pivotData[key][date] ? pivotData[key][date].size : 0;
                     rowCounts.push(count === 0 ? '' : count);
                     if (count > 0) { rowTotal += count; colTotals[idx] += count; }
                 });
-                
                 finalGrid.push([...rowDisplay, ...rowCounts, rowTotal]);
                 grandTotalAll += rowTotal;
             });
 
-            // Footer
             let footerLabel = isNetworkWiseView ? ['Grand Total', ''] : ['Grand Total'];
             finalGrid.push([...footerLabel, ...colTotals.map(t => t === 0 ? '' : t), grandTotalAll]);
 
@@ -534,7 +679,6 @@
         function exportCSV() {
             if (finalGrid.length === 0) return;
             
-            // Get Current Filters for Filename
             const netVal = document.getElementById('networkFilter').value;
             const modVal = document.getElementById('modelFilter').value;
             
@@ -545,12 +689,13 @@
             if (modVal !== 'ALL') nameParts.push(modVal.replace(/[^a-z0-9]/gi, '_')); 
             
             let suffix = nameParts.length > 0 ? nameParts.join('_') : 'All';
+            let typePrefix = currentReportType === 'ENQUIRY' ? 'Enquiry' : 'Invoice';
 
             let csvContent = "data:text/csv;charset=utf-8," + finalGrid.map(e => e.join(",")).join("\n");
             const encodedUri = encodeURI(csvContent);
             const link = document.createElement("a");
             link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `Enquiry_Matrix_Report_${suffix}.csv`);
+            link.setAttribute("download", `${typePrefix}_Matrix_Report_${suffix}.csv`);
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
