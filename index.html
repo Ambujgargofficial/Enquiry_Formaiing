@@ -18,6 +18,12 @@
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             background-color: white;
         }
+
+        /* NEW: No-Scroll Utility for Leakage Detail Report */
+        .table-wrapper.no-scroll {
+            max-height: none !important;
+            overflow: visible !important;
+        }
         
         /* Spreadsheet Style Table */
         table {
@@ -31,6 +37,11 @@
             border-bottom: 1px solid #e5e7eb;
             padding: 8px 12px;
             white-space: nowrap;
+        }
+
+        /* Remove right border from last column to fix visual glitch */
+        th:last-child, td:last-child {
+            border-right: none;
         }
 
         /* Sticky Headers */
@@ -986,6 +997,9 @@
 
         // STEP 2: Aggregate & Render
         function updateDisplay() {
+             // Reset wrapper style default
+             document.querySelector('.table-wrapper').classList.remove('no-scroll');
+
             // HANDLE LEAKAGE
             if (currentReportType === 'LEAKAGE') {
                 renderLeakageReport();
@@ -1191,6 +1205,14 @@
 
             titleEl.innerText = showDetail ? 'Enquiry Leakage Matrix (Detail)' : 'Enquiry Leakage Summary';
 
+            // NO SCROLL LOGIC
+            const tableWrapper = document.querySelector('.table-wrapper');
+            if (showDetail) {
+                 tableWrapper.classList.add('no-scroll');
+            } else {
+                 tableWrapper.classList.remove('no-scroll');
+            }
+
             // Filter
             let filteredData = globalLeakageData.filter(d => {
                 return (typeVal === 'ALL' || d.netType === typeVal) && (netVal === 'ALL' || d.netName === netVal);
@@ -1232,19 +1254,21 @@
                     return pB - pA;
                 });
 
-                // Calculate Reason Totals for Sorting
-                let reasonCounts = {};
+                // Calculate Reason Totals for Sorting (Grand Total High to Low)
+                let reasonTotals = {};
                 allReasons.forEach(r => {
-                    let count = 0;
+                    let sum = 0;
                     if (pivotData[r]) {
-                        Object.values(pivotData[r]).forEach(val => count += val);
+                        Object.values(pivotData[r]).forEach(val => sum += val);
                     }
-                    reasonCounts[r] = count;
+                    reasonTotals[r] = sum;
                 });
-                
+
                 // Sort Reasons (High Count First)
                 let sortedReasons = Array.from(allReasons).sort((a, b) => {
-                    return reasonCounts[b] - reasonCounts[a];
+                    if (a === "Blanks") return -1; // Blanks first if desired, or sort by count
+                    // Let's sort Blanks to top if it has high count, standard sort logic:
+                    return reasonTotals[b] - reasonTotals[a];
                 });
 
                 finalGrid = [];
