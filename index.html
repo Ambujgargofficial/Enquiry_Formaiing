@@ -218,12 +218,16 @@
             
             <div class="feature-list">
                 <div class="feature-item">
-                    <span class="feature-icon">📅</span>
-                    <span class="feature-text"><b>Day-wise Toggle:</b> Switch between daily breakdown or summary view easily.</span>
+                    <span class="feature-icon">🚚</span>
+                    <span class="feature-text"><b>In-Transit Report:</b> New dedicated report for tracking transit vehicles.</span>
                 </div>
                 <div class="feature-item">
-                    <span class="feature-icon">🏢</span>
-                    <span class="feature-text"><b>Network Breakdown:</b> View separate dealer networks or combined totals.</span>
+                    <span class="feature-icon">🔝</span>
+                    <span class="feature-text"><b>Top-Down Totals:</b> Model Total appears at the top for better visibility.</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">🔢</span>
+                    <span class="feature-text"><b>Load Wise Matrix:</b> View data in pivot style (Load Refs as columns).</span>
                 </div>
                 <div class="feature-item">
                     <span class="feature-icon">✅</span>
@@ -232,10 +236,6 @@
                 <div class="feature-item">
                     <span class="feature-icon">🔀</span>
                     <span class="feature-text"><b>Smart Merge:</b> Combine selected models into one custom named group.</span>
-                </div>
-                <div class="feature-item">
-                    <span class="feature-icon">🚫</span>
-                    <span class="feature-text"><b>Smart Invoice:</b> Automatically filters out 'Cancelled' invoices.</span>
                 </div>
             </div>
 
@@ -248,19 +248,22 @@
         <div class="flex justify-between items-start mb-4">
             <div>
                 <h1 class="text-2xl font-bold text-gray-800">📊 Universal Matrix Report</h1>
-                <p class="text-xs text-gray-500 mt-1">(Enquiry & Invoice)</p>
+                <p class="text-xs text-gray-500 mt-1">(Enquiry & Invoice & In-Transit)</p>
             </div>
             
             <!-- Creator Badge inserted here -->
-            <div class="creator-container">
-                <div class="creator-text">Created By : Ambuj Garg</div>
-                <button class="info-btn" onclick="showContact()">i</button>
+            <div class="creator-container flex-col gap-1 !p-3">
+                <div class="flex items-center gap-2">
+                    <div class="creator-text">Created By : Ambuj Garg</div>
+                    <button class="info-btn" onclick="showContact()">i</button>
+                </div>
+                <!-- Removed IN-TRANSIT READY text as requested -->
             </div>
         </div>
 
         <p class="text-sm text-gray-600 mb-4">
             Paste your raw CSV/Excel data below. <<---Ambujgarg_official<br>
-            The tool automatically detects if it's an <b>Enquiry Report</b> or <b>Invoice Report</b>.
+            The tool automatically detects <b>Enquiry</b>, <b>Invoice</b>, or <b>In-Transit</b> data.
         </p>
 
         <!-- Input Section (Big Box) -->
@@ -274,8 +277,8 @@
                 Clear
             </button>
             
-            <!-- Options Group -->
-            <div class="flex items-center gap-4 ml-4 border-l pl-4 border-gray-300">
+            <!-- Standard Options Group (Hidden initially) -->
+            <div id="standardOptions" class="hidden flex items-center gap-4 ml-4 border-l pl-4 border-gray-300">
                 
                 <!-- Day Wise Checkbox -->
                 <div class="flex items-center gap-2">
@@ -289,7 +292,7 @@
                     <label for="showNetwork" class="text-sm font-semibold text-gray-700 select-none cursor-pointer">Show Network</label>
                 </div>
 
-                <!-- Model Wise Checkbox (New) -->
+                <!-- Model Wise Checkbox -->
                 <div class="flex items-center gap-2 border-l pl-4 border-gray-300">
                     <input type="checkbox" id="showModel" onchange="updateDisplay()" checked class="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 cursor-pointer">
                     <label for="showModel" class="text-sm font-semibold text-gray-700 select-none cursor-pointer">Show Model</label>
@@ -297,10 +300,18 @@
 
             </div>
 
+            <!-- Transit Options Group (Hidden initially) -->
+            <div id="transitOptions" class="hidden flex items-center gap-4 ml-4 border-l pl-4 border-gray-300">
+                <div class="flex items-center gap-2 bg-yellow-50 px-3 py-1 rounded border border-yellow-200">
+                    <input type="checkbox" id="showLoadRef" onchange="updateDisplay()" checked class="w-5 h-5 text-yellow-600 bg-gray-100 border-gray-300 rounded focus:ring-yellow-500 cursor-pointer">
+                    <label for="showLoadRef" class="text-sm font-bold text-yellow-800 select-none cursor-pointer">HMSI Load Reference No Wise</label>
+                </div>
+            </div>
+
             <!-- Filters Container (Initially Hidden) -->
             <div id="filterContainer" class="hidden flex flex-wrap items-center gap-4 ml-4 border-l pl-4 border-gray-300 z-50 relative">
                 <!-- Network Filter -->
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2" id="networkFilterDiv">
                     <label for="networkFilter" class="text-sm font-semibold text-gray-700">Network:</label>
                     <select id="networkFilter" onchange="updateDisplay()" class="text-sm border border-gray-300 rounded p-1 focus:ring-blue-500 bg-white max-w-[200px]">
                         <option value="ALL">All Networks (Sum)</option>
@@ -374,6 +385,7 @@
         let finalGrid = []; 
         let globalParsedData = []; // Stores Main Data
         let globalTestRideData = []; // Stores Test Ride 'Y' Data
+        let globalTransitData = []; // Stores Transit Data
         let currentReportType = 'ENQUIRY'; 
         let activeTab = 'MAIN'; // 'MAIN' or 'TEST_RIDE'
         let autoCloseTimer = null;
@@ -426,6 +438,7 @@
 
         // Initialize on load
         window.onload = function() {
+            document.getElementById('csvInput').value = ''; // Force clear input on refresh
             showContact(true);
         };
 
@@ -580,6 +593,7 @@
             // Reset
             globalParsedData = [];
             globalTestRideData = [];
+            globalTransitData = [];
             outputSection.classList.add('hidden');
             document.getElementById('filterContainer').classList.add('hidden');
             statusDiv.innerText = "Processing...";
@@ -620,10 +634,89 @@
             // New: Test Ride Column Detection
             const colTestRide = getColumnIndex(headers, ['test ride flag', 'test ride']).index;
 
+            // NEW: Transit Data Detection
+            const colLoadRef = getColumnIndex(headers, ['hmsi load reference no', 'load reference no']).index;
+            const colColor = getColumnIndex(headers, ['color', 'colour']).index;
+            const colModelName = getColumnIndex(headers, ['model name']).index; // PARSE MODEL NAME
+
             let colID = -1; 
             let colDate = -1;
             let colNetSource = -1; 
             
+            // 1. Check for Transit Data First
+            if (colLoadRef > -1 && colVariant > -1 && colColor > -1) {
+                currentReportType = 'TRANSIT';
+                statusDiv.innerText = "Detected: In-Transit Data...";
+                
+                // Parse Transit Data
+                let uniqueModels = new Set();
+                
+                for (let i = 1; i < lines.length; i++) {
+                    let row = parseRow(lines[i], delimiter);
+                    let variant = row[colVariant] ? row[colVariant].trim() : '';
+                    let color = row[colColor] ? row[colColor].trim() : '';
+                    let loadRef = row[colLoadRef] ? row[colLoadRef].trim() : 'Unknown Load';
+                    
+                    // Parse Model Name (if available, else fallback to variant)
+                    let modelName = (colModelName > -1 && row[colModelName]) ? row[colModelName].trim() : variant;
+
+                    // Remove blanks as requested
+                    if (!variant || !color) continue;
+
+                    globalTransitData.push({ modelName, variant, color, loadRef });
+                    uniqueModels.add(variant);
+                }
+
+                if (globalTransitData.length === 0) {
+                    alert("No valid Transit rows found (checked Model & Color).");
+                    return;
+                }
+
+                // Populate Model Filters for Transit (Simplified)
+                const list = document.getElementById('modelDropdownList');
+                list.innerHTML = '';
+                const selectAllDiv = document.createElement('div');
+                selectAllDiv.className = 'p-2 border-b border-gray-200 sticky top-0 bg-white z-10';
+                selectAllDiv.innerHTML = `
+                    <label class="flex items-center space-x-2 cursor-pointer font-bold text-blue-700 hover:text-blue-900">
+                        <input type="checkbox" id="modelSelectAll" checked onchange="updateModelSelection(true)" class="w-4 h-4 text-blue-600 rounded">
+                        <span>Select All</span>
+                    </label>
+                `;
+                list.appendChild(selectAllDiv);
+
+                Array.from(uniqueModels).sort().forEach(mod => {
+                    const div = document.createElement('div');
+                    div.className = 'checkbox-item p-1.5 px-2 hover:bg-gray-100';
+                    div.innerHTML = `
+                        <label class="flex items-center space-x-2 cursor-pointer w-full">
+                            <input type="checkbox" value="${mod}" checked onchange="updateModelSelection(false)" class="model-checkbox w-4 h-4 text-blue-600 rounded border-gray-300">
+                            <span class="text-gray-700 truncate text-xs" title="${mod}">${mod}</span>
+                        </label>
+                    `;
+                    list.appendChild(div);
+                });
+                document.getElementById('modelBtnText').innerText = "All Models";
+
+                // Toggle UI Sections
+                document.getElementById('standardOptions').classList.add('hidden');
+                document.getElementById('transitOptions').classList.remove('hidden');
+                document.getElementById('tabsNav').classList.add('hidden');
+                document.getElementById('networkFilterDiv').classList.add('hidden'); // No network filter for Transit
+                document.getElementById('filterContainer').classList.remove('hidden');
+                
+                statusDiv.innerHTML = `✅ <b>IN-TRANSIT REPORT</b> Generated. (${globalTransitData.length} records)`;
+                statusDiv.className = "mt-3 text-sm font-medium text-yellow-700 h-5";
+                
+                updateDisplay();
+                return; // STOP HERE FOR TRANSIT
+            } 
+            
+            // Not Transit? Reset standard UI
+            document.getElementById('standardOptions').classList.remove('hidden');
+            document.getElementById('transitOptions').classList.add('hidden');
+            document.getElementById('networkFilterDiv').classList.remove('hidden');
+
             if (colInvNo > -1 && colInvDate > -1) {
                 currentReportType = 'INVOICE';
                 colID = colInvNo;
@@ -812,6 +905,12 @@
 
         // STEP 2: Aggregate & Render
         function updateDisplay() {
+            // HANDLE TRANSIT DISPLAY SEPARATELY
+            if (currentReportType === 'TRANSIT') {
+                renderTransitReport();
+                return;
+            }
+
             // Choose dataset based on active tab
             let sourceData = (activeTab === 'TEST_RIDE') ? globalTestRideData : globalParsedData;
 
@@ -995,6 +1094,269 @@
             document.getElementById('stats').innerText = `Displaying ${filteredData.length} entries.`;
         }
 
+        // --- NEW: RENDER TRANSIT REPORT (TOP-DOWN TOTALS) ---
+        function renderTransitReport() {
+            const showLoadRef = document.getElementById('showLoadRef').checked;
+            const outputSection = document.getElementById('outputSection');
+            const titleEl = document.getElementById('reportTitle');
+            
+            titleEl.innerText = `In-Transit Summary (${showLoadRef ? 'Load Wise Matrix' : 'Consolidated'})`;
+
+            // Filter logic
+            const allCheckbox = document.getElementById('modelSelectAll');
+            let selectedModels = [];
+            if (allCheckbox && !allCheckbox.checked) {
+                const checkboxes = document.querySelectorAll('.model-checkbox:checked');
+                selectedModels = Array.from(checkboxes).map(cb => cb.value);
+            }
+
+            const isMergeOn = document.getElementById('mergeModels').checked;
+            const customMergeName = document.getElementById('mergeLabel').value.trim() || "Merged Group";
+
+            let filteredData = globalTransitData.filter(d => {
+                if (allCheckbox && !allCheckbox.checked) {
+                    return selectedModels.includes(d.variant);
+                }
+                return true;
+            });
+
+            // HIERARCHY BUILDING: ModelName -> Variant -> Color
+            let groupedData = {};
+            let allLoadRefs = new Set();
+
+            filteredData.forEach(d => {
+                let modelName = isMergeOn ? customMergeName : d.modelName; // Override if merge
+                let variantName = isMergeOn ? customMergeName : d.variant;
+                let color = d.color;
+                let loadKey = d.loadRef; 
+                allLoadRefs.add(loadKey);
+
+                // Level 1: Model Name
+                if (!groupedData[modelName]) {
+                    groupedData[modelName] = { 
+                        loadTotals: {}, 
+                        variants: {} 
+                    };
+                }
+                // Aggregate Model Totals
+                groupedData[modelName].loadTotals[loadKey] = (groupedData[modelName].loadTotals[loadKey] || 0) + 1;
+
+                // Level 2: Variant
+                if (!groupedData[modelName].variants[variantName]) {
+                    groupedData[modelName].variants[variantName] = {
+                        loadTotals: {},
+                        colors: {}
+                    };
+                }
+                // Aggregate Variant Totals
+                groupedData[modelName].variants[variantName].loadTotals[loadKey] = (groupedData[modelName].variants[variantName].loadTotals[loadKey] || 0) + 1;
+
+                // Level 3: Colors
+                if (!groupedData[modelName].variants[variantName].colors[color]) {
+                    groupedData[modelName].variants[variantName].colors[color] = {};
+                }
+                groupedData[modelName].variants[variantName].colors[color][loadKey] = (groupedData[modelName].variants[variantName].colors[color][loadKey] || 0) + 1;
+            });
+
+            const sortedLoadRefs = Array.from(allLoadRefs).sort();
+            const sortedModels = Object.keys(groupedData).sort();
+
+            finalGrid = [];
+            
+            // Header
+            let headerRow = ['Model Hierarchy', 'Color'];
+            if (showLoadRef) {
+                headerRow.push(...sortedLoadRefs);
+            } else {
+                headerRow.push("Total Qty");
+            }
+            headerRow.push('Grand Total');
+            finalGrid.push(headerRow);
+
+            let colTotals = new Array(showLoadRef ? sortedLoadRefs.length : 1).fill(0);
+            let grandTotalAll = 0;
+
+            // --- RENDER ROWS ---
+            sortedModels.forEach(model => {
+                let mData = groupedData[model];
+                
+                // 1. MODEL NAME TOTAL ROW (TOP LEVEL)
+                let modelRow = [`${model} Total`, '']; 
+                let modelRowTotal = 0;
+                let modelRowData = [];
+
+                if (showLoadRef) {
+                    sortedLoadRefs.forEach(ref => {
+                        let count = mData.loadTotals[ref] || 0;
+                        modelRowData.push(count === 0 ? '' : count);
+                        modelRowTotal += count;
+                    });
+                } else {
+                    let count = 0;
+                    Object.values(mData.loadTotals).forEach(val => count += val);
+                    modelRowData.push(count);
+                    modelRowTotal = count;
+                }
+                modelRow.push(...modelRowData, modelRowTotal);
+                finalGrid.push({ type: 'MODEL_TOTAL', data: modelRow }); // Tagged row
+
+                let sortedVariants = Object.keys(mData.variants).sort();
+
+                sortedVariants.forEach(variant => {
+                    let vData = mData.variants[variant];
+                    
+                    // 2. VARIANT TOTAL ROW (SECOND LEVEL)
+                    let variantRow = [`${variant} Total`, '']; 
+                    let variantRowTotal = 0;
+                    let variantRowData = [];
+
+                    if (showLoadRef) {
+                        sortedLoadRefs.forEach(ref => {
+                            let count = vData.loadTotals[ref] || 0;
+                            variantRowData.push(count === 0 ? '' : count);
+                            variantRowTotal += count;
+                        });
+                    } else {
+                        let count = 0;
+                        Object.values(vData.loadTotals).forEach(val => count += val);
+                        variantRowData.push(count);
+                        variantRowTotal = count;
+                    }
+                    variantRow.push(...variantRowData, variantRowTotal);
+                    
+                    // Only show variant subtotal if distinct from Model name or user wants hierarchy
+                    // User asked for explicit hierarchy.
+                    finalGrid.push({ type: 'VARIANT_TOTAL', data: variantRow });
+
+                    // 3. COLOR ROWS (DETAILS)
+                    let sortedColors = Object.keys(vData.colors).sort();
+                    sortedColors.forEach(color => {
+                        let rowData = [variant, color];
+                        let rowTotal = 0;
+
+                        if (showLoadRef) {
+                            sortedLoadRefs.forEach((ref, idx) => {
+                                let count = vData.colors[color][ref] || 0;
+                                rowData.push(count === 0 ? '' : count);
+                                if (count > 0) {
+                                    rowTotal += count;
+                                    colTotals[idx] += count; // Only sum leaf nodes to Grand Total
+                                }
+                            });
+                        } else {
+                            let count = 0;
+                            Object.values(vData.colors[color]).forEach(val => count += val);
+                            rowData.push(count);
+                            rowTotal = count;
+                            colTotals[0] += count;
+                        }
+                        rowData.push(rowTotal);
+                        grandTotalAll += rowTotal;
+                        finalGrid.push({ type: 'DATA', data: rowData });
+                    });
+                });
+            });
+
+            // Footer
+            let footer = ['Grand Total', ''];
+            footer.push(...colTotals.map(t => t === 0 ? '' : t));
+            footer.push(grandTotalAll);
+            finalGrid.push({ type: 'FOOTER', data: footer });
+
+            renderTransitTable(finalGrid, showLoadRef);
+            outputSection.classList.remove('hidden');
+            document.getElementById('stats').innerText = `Displaying ${filteredData.length} records.`;
+        }
+
+        function renderTransitTable(gridObjects, isLoadRefMode) {
+            const table = document.getElementById('reportTable');
+            table.innerHTML = '';
+            
+            // Unwrap Header (First element)
+            const headerData = gridObjects[0]; 
+            const thead = document.createElement('thead');
+            const trHead = document.createElement('tr');
+            
+            // Header is simple array in first position
+            if (Array.isArray(headerData)) {
+                 headerData.forEach((cell, i) => {
+                    const th = document.createElement('th');
+                    if (i === 0) th.className = "sticky-col-1";
+                    if (i === 1) {
+                        th.className = "sticky-col-2";
+                        th.style.left = "150px"; 
+                    }
+                    th.innerText = cell;
+                    trHead.appendChild(th);
+                });
+            }
+            thead.appendChild(trHead);
+            table.appendChild(thead);
+
+            const tbody = document.createElement('tbody');
+            
+            // Iterate from 1 (Skip Header)
+            for (let i = 1; i < gridObjects.length; i++) {
+                const tr = document.createElement('tr');
+                const rowObj = gridObjects[i];
+                const rowData = rowObj.data;
+                const type = rowObj.type;
+
+                // STYLING LOGIC
+                if (type === 'MODEL_TOTAL') {
+                    tr.className = "bg-blue-100 font-extrabold text-blue-900 border-t-2 border-blue-300";
+                } else if (type === 'VARIANT_TOTAL') {
+                    tr.className = "bg-gray-100 font-bold text-gray-800";
+                } else if (type === 'FOOTER') {
+                    // handled by tfoot logic usually, but here we pushed to grid
+                }
+
+                rowData.forEach((cell, j) => {
+                    const tag = (j < 2) ? 'th' : 'td'; 
+                    const el = document.createElement(tag);
+                    
+                    // STICKY COLUMN LOGIC
+                    let baseClass = "";
+                    if(type === 'MODEL_TOTAL') baseClass = "bg-blue-100 font-extrabold text-blue-900";
+                    else if(type === 'VARIANT_TOTAL') baseClass = "bg-gray-100 font-bold text-gray-800";
+                    else baseClass = "bg-gray-50 font-medium text-gray-900"; // default sticky
+
+                    if (j === 0) {
+                        el.className = `sticky-col-1 text-left ${baseClass}`;
+                        if(type === 'MODEL_TOTAL' || type === 'VARIANT_TOTAL') el.setAttribute("colspan", 2); // Span over color
+                    } else if (j === 1) {
+                        if(type === 'MODEL_TOTAL' || type === 'VARIANT_TOTAL') {
+                            return; // Skipped due to colspan
+                        }
+                        el.className = `sticky-col-2 text-left ${baseClass}`;
+                        el.style.left = "150px";
+                    } else {
+                        el.className = "text-center " + (type !== 'DATA' ? "font-bold" : "");
+                    }
+                    
+                    // Highlight Total Column (Last Col)
+                    if (j === rowData.length - 1) {
+                        el.classList.add("border-l", "border-gray-300");
+                        if(type === 'DATA') el.classList.add("font-bold", "bg-blue-50", "text-blue-700");
+                    }
+
+                    el.innerText = cell;
+                    tr.appendChild(el);
+                });
+                
+                // Separate Footer Logic if needed, but here simple append works
+                if (type === 'FOOTER') {
+                    // Create explicit tfoot
+                    const tfoot = document.createElement('tfoot');
+                    tfoot.appendChild(tr);
+                    table.appendChild(tfoot);
+                } else {
+                    tbody.appendChild(tr);
+                }
+            }
+            table.appendChild(tbody);
+        }
+
         function renderTable(grid, isNetworkWise, showModel) {
             const table = document.getElementById('reportTable');
             table.innerHTML = '';
@@ -1071,42 +1433,48 @@
             document.getElementById('filterContainer').classList.add('hidden');
             document.getElementById('statusMsg').innerText = '';
             document.getElementById('tabsNav').classList.add('hidden');
+            document.getElementById('standardOptions').classList.add('hidden');
+            document.getElementById('transitOptions').classList.add('hidden');
             globalParsedData = [];
             globalTestRideData = [];
+            globalTransitData = [];
         }
 
         function exportCSV() {
             if (finalGrid.length === 0) return;
             
-            const netVal = document.getElementById('networkFilter').value;
-            // const modVal = document.getElementById('modelFilter').value; // OLD SINGLE SELECT
-            const showDayWise = document.getElementById('showDayWise').checked;
-            
-            // Check multi-select state
-            const allCheckbox = document.getElementById('modelSelectAll');
-            let modLabel = 'All_Models';
-            if (allCheckbox && !allCheckbox.checked) {
-                 const checkboxes = document.querySelectorAll('.model-checkbox:checked');
-                 if (checkboxes.length > 0 && checkboxes.length < 4) {
-                     modLabel = Array.from(checkboxes).map(c => c.value.replace(/[^a-z0-9]/gi, '')).join('_');
-                 } else {
-                     modLabel = 'Selected_Models';
-                 }
+            // For TRANSIT, finalGrid is array of objects {type, data}. Need to extract data.
+            let exportData = [];
+            if (currentReportType === 'TRANSIT') {
+                // Header is first element (simple array)
+                exportData.push(finalGrid[0]);
+                // Rest are objects
+                for(let i=1; i<finalGrid.length; i++) {
+                    exportData.push(finalGrid[i].data);
+                }
+            } else {
+                exportData = finalGrid;
             }
 
+            const netVal = document.getElementById('networkFilter').value;
+            const showDayWise = document.getElementById('showDayWise').checked;
+            
             let nameParts = [];
-            if (netVal === 'SEPARATE') nameParts.push('All_Networks_Sep');
-            else if (netVal !== 'ALL') nameParts.push(netVal);
-            
-            nameParts.push(modLabel);
-            
-            if (!showDayWise) nameParts.push('Summary');
+            if (currentReportType === 'TRANSIT') {
+                nameParts.push('Transit_Report');
+                if(document.getElementById('showLoadRef').checked) nameParts.push('LoadWise_Matrix');
+                else nameParts.push('Summary');
+            } else {
+                // ... existing export logic ...
+                if (netVal === 'SEPARATE') nameParts.push('All_Networks_Sep');
+                else if (netVal !== 'ALL') nameParts.push(netVal);
+                if (!showDayWise) nameParts.push('Summary');
+            }
 
             let suffix = nameParts.length > 0 ? nameParts.join('_') : 'All';
-            let typePrefix = currentReportType === 'ENQUIRY' ? 'Enquiry' : 'Invoice';
-            if (activeTab === 'TEST_RIDE') typePrefix = 'Test_Ride';
-
-            let csvContent = "data:text/csv;charset=utf-8," + finalGrid.map(e => e.join(",")).join("\n");
+            let typePrefix = currentReportType === 'ENQUIRY' ? 'Enquiry' : (currentReportType === 'INVOICE' ? 'Invoice' : 'Transit');
+            
+            let csvContent = "data:text/csv;charset=utf-8," + exportData.map(e => e.join(",")).join("\n");
             const encodedUri = encodeURI(csvContent);
             const link = document.createElement("a");
             link.setAttribute("href", encodedUri);
@@ -1118,7 +1486,16 @@
 
         function copyTable() {
             if (finalGrid.length === 0) return;
-            let tsvContent = finalGrid.map(e => e.join("\t")).join("\n");
+            
+            let copyData = [];
+            if (currentReportType === 'TRANSIT') {
+                copyData.push(finalGrid[0]);
+                for(let i=1; i<finalGrid.length; i++) copyData.push(finalGrid[i].data);
+            } else {
+                copyData = finalGrid;
+            }
+
+            let tsvContent = copyData.map(e => e.join("\t")).join("\n");
             navigator.clipboard.writeText(tsvContent).then(() => { alert("Copied to clipboard!"); });
         }
     </script>
