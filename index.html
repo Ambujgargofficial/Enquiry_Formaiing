@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Universal Matrix Report Generator</title>
+    <title>Universal Matrix Report v3.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -213,10 +213,22 @@
     <!-- New Updates Overlay (Hidden by default) -->
     <div id="updates-screen" class="overlay">
         <div class="menu-box" style="border-color: #39ff14; box-shadow: 0 0 30px #39ff14;">
-            <h2 style="color:white; margin-top:0; margin-bottom: 5px; font-family: sans-serif;">🚀 What's New?</h2>
-            <p style="color:#aaa; font-size: 12px; margin-bottom: 15px;">Latest features added today!</p>
+            <h2 style="color:white; margin-top:0; margin-bottom: 5px; font-family: sans-serif;">🚀 What's New in v3.0?</h2>
+            <p style="color:#aaa; font-size: 12px; margin-bottom: 15px;">Latest features added on 27-Jan-2026</p>
             
             <div class="feature-list">
+                <div class="feature-item">
+                    <span class="feature-icon">🔍</span>
+                    <span class="feature-text"><b>Leakage Report:</b> New Analysis for Enquiry Leakage & Variance.</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">📑</span>
+                    <span class="feature-text"><b>Detailed Matrix:</b> View breakdown by Reason vs Network.</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">📊</span>
+                    <span class="feature-text"><b>Smart Sorting:</b> Data sorted by Followup Done % & Counts (High to Low).</span>
+                </div>
                 <div class="feature-item">
                     <span class="feature-icon">🚚</span>
                     <span class="feature-text"><b>In-Transit Report:</b> New dedicated report for tracking transit vehicles.</span>
@@ -224,18 +236,6 @@
                 <div class="feature-item">
                     <span class="feature-icon">🔝</span>
                     <span class="feature-text"><b>Top-Down Totals:</b> Model Total appears at the top for better visibility.</span>
-                </div>
-                <div class="feature-item">
-                    <span class="feature-icon">🔢</span>
-                    <span class="feature-text"><b>Load Wise Matrix:</b> View data in pivot style (Load Refs as columns).</span>
-                </div>
-                <div class="feature-item">
-                    <span class="feature-icon">✅</span>
-                    <span class="feature-text"><b>Multi-Model Select:</b> Select multiple specific models to analyze at once.</span>
-                </div>
-                <div class="feature-item">
-                    <span class="feature-icon">🔀</span>
-                    <span class="feature-text"><b>Smart Merge:</b> Combine selected models into one custom named group.</span>
                 </div>
             </div>
 
@@ -247,8 +247,8 @@
         <!-- Header Row with Creator Badge -->
         <div class="flex justify-between items-start mb-4">
             <div>
-                <h1 class="text-2xl font-bold text-gray-800">📊 Universal Matrix Report</h1>
-                <p class="text-xs text-gray-500 mt-1">(Enquiry & Invoice & In-Transit)</p>
+                <h1 class="text-2xl font-bold text-gray-800">📊 Universal Matrix Report v3.0</h1>
+                <p class="text-xs text-gray-500 mt-1">(Enquiry & Invoice & In-Transit & Leakage)</p>
             </div>
             
             <!-- Creator Badge inserted here -->
@@ -257,13 +257,12 @@
                     <div class="creator-text">Created By : Ambuj Garg</div>
                     <button class="info-btn" onclick="showContact()">i</button>
                 </div>
-                <!-- Removed IN-TRANSIT READY text as requested -->
             </div>
         </div>
 
         <p class="text-sm text-gray-600 mb-4">
             Paste your raw CSV/Excel data below. <<---Ambujgarg_official<br>
-            The tool automatically detects <b>Enquiry</b>, <b>Invoice</b>, or <b>In-Transit</b> data.
+            The tool automatically detects <b>Enquiry</b>, <b>Invoice</b>, <b>In-Transit</b>, or <b>Leakage</b> data.
         </p>
 
         <!-- Input Section (Big Box) -->
@@ -279,25 +278,18 @@
             
             <!-- Standard Options Group (Hidden initially) -->
             <div id="standardOptions" class="hidden flex items-center gap-4 ml-4 border-l pl-4 border-gray-300">
-                
-                <!-- Day Wise Checkbox -->
                 <div class="flex items-center gap-2">
                     <input type="checkbox" id="showDayWise" onchange="updateDisplay()" checked class="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 cursor-pointer">
                     <label for="showDayWise" class="text-sm font-semibold text-gray-700 select-none cursor-pointer">Show Day-wise</label>
                 </div>
-
-                <!-- Network Wise Checkbox -->
                 <div class="flex items-center gap-2 border-l pl-4 border-gray-300">
                     <input type="checkbox" id="showNetwork" onchange="updateDisplay()" checked class="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 cursor-pointer">
                     <label for="showNetwork" class="text-sm font-semibold text-gray-700 select-none cursor-pointer">Show Network</label>
                 </div>
-
-                <!-- Model Wise Checkbox -->
                 <div class="flex items-center gap-2 border-l pl-4 border-gray-300">
                     <input type="checkbox" id="showModel" onchange="updateDisplay()" checked class="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 cursor-pointer">
                     <label for="showModel" class="text-sm font-semibold text-gray-700 select-none cursor-pointer">Show Model</label>
                 </div>
-
             </div>
 
             <!-- Transit Options Group (Hidden initially) -->
@@ -308,8 +300,25 @@
                 </div>
             </div>
 
+            <!-- Leakage Options Group (Hidden initially) -->
+            <div id="leakageOptions" class="hidden flex items-center gap-4 ml-4 border-l pl-4 border-gray-300">
+                <div class="flex items-center gap-2 bg-purple-50 px-3 py-1 rounded border border-purple-200">
+                    <input type="checkbox" id="showLeakageDetail" onchange="updateDisplay()" class="w-5 h-5 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 cursor-pointer">
+                    <label for="showLeakageDetail" class="text-sm font-bold text-purple-800 select-none cursor-pointer">Show Detail Report</label>
+                </div>
+            </div>
+
             <!-- Filters Container (Initially Hidden) -->
             <div id="filterContainer" class="hidden flex flex-wrap items-center gap-4 ml-4 border-l pl-4 border-gray-300 z-50 relative">
+                
+                <!-- NEW: Network Type Filter -->
+                <div class="flex items-center gap-2 hidden" id="netTypeFilterDiv">
+                    <label for="netTypeFilter" class="text-sm font-semibold text-gray-700">Network Type:</label>
+                    <select id="netTypeFilter" onchange="updateDisplay()" class="text-sm border border-gray-300 rounded p-1 focus:ring-blue-500 bg-white max-w-[200px]">
+                        <option value="ALL">All Types</option>
+                    </select>
+                </div>
+
                 <!-- Network Filter -->
                 <div class="flex items-center gap-2" id="networkFilterDiv">
                     <label for="networkFilter" class="text-sm font-semibold text-gray-700">Network:</label>
@@ -322,13 +331,11 @@
                 <!-- Model Filter (Multi-Select) -->
                 <div class="flex items-center gap-2 relative">
                     <label class="text-sm font-semibold text-gray-700">Model:</label>
-                    
                     <div class="relative">
                         <button id="modelDropdownBtn" onclick="toggleModelDropdown(event)" class="text-sm border border-gray-300 rounded p-1 px-2 focus:ring-blue-500 bg-white min-w-[160px] text-left flex justify-between items-center shadow-sm">
                             <span id="modelBtnText" class="truncate max-w-[130px]">All Models</span>
                             <span class="text-xs text-gray-500 ml-1">▼</span>
                         </button>
-                        
                         <div id="modelDropdownList" class="hidden absolute top-full left-0 mt-1 w-64 bg-white border border-gray-300 rounded shadow-xl z-[60] max-h-80 overflow-y-auto p-1">
                             <!-- Checkboxes injected here -->
                         </div>
@@ -386,6 +393,7 @@
         let globalParsedData = []; // Stores Main Data
         let globalTestRideData = []; // Stores Test Ride 'Y' Data
         let globalTransitData = []; // Stores Transit Data
+        let globalLeakageData = []; // Stores Leakage Data
         let currentReportType = 'ENQUIRY'; 
         let activeTab = 'MAIN'; // 'MAIN' or 'TEST_RIDE'
         let autoCloseTimer = null;
@@ -594,6 +602,7 @@
             globalParsedData = [];
             globalTestRideData = [];
             globalTransitData = [];
+            globalLeakageData = [];
             outputSection.classList.add('hidden');
             document.getElementById('filterContainer').classList.add('hidden');
             statusDiv.innerText = "Processing...";
@@ -637,13 +646,82 @@
             // NEW: Transit Data Detection
             const colLoadRef = getColumnIndex(headers, ['hmsi load reference no', 'load reference no']).index;
             const colColor = getColumnIndex(headers, ['color', 'colour']).index;
-            const colModelName = getColumnIndex(headers, ['model name']).index; // PARSE MODEL NAME
+            const colModelName = getColumnIndex(headers, ['model name']).index; 
+
+            // NEW: Leakage Analysis Detection
+            const colEnqMobility = getColumnIndex(headers, ['enquiry mobility']).index;
+            const colReasonClosure = getColumnIndex(headers, ['reason for closure']).index;
+            const colNumEnquiries = getColumnIndex(headers, ['number of enquires', 'number of enquiries', 'qty']).index;
+            const colNetworkName = getColumnIndex(headers, ['network name']).index;
+            const colNetType = getColumnIndex(headers, ['network type', 'dealer type']).index; // Capture Network Type
 
             let colID = -1; 
             let colDate = -1;
             let colNetSource = -1; 
             
-            // 1. Check for Transit Data First
+            // 1. Check for Leakage Report Data
+            if (colEnqMobility > -1 && colReasonClosure > -1) {
+                currentReportType = 'LEAKAGE';
+                statusDiv.innerText = "Detected: Enquiry Leakage Data...";
+                
+                let uniqueNetworks = new Set();
+                let uniqueNetTypes = new Set();
+
+                for (let i = 1; i < lines.length; i++) {
+                    let row = parseRow(lines[i], delimiter);
+                    // Required: Network Name
+                    let netName = (colNetworkName > -1 && row[colNetworkName]) ? row[colNetworkName].trim() : "Unknown Network";
+                    // Network Type
+                    let netType = (colNetType > -1 && row[colNetType]) ? row[colNetType].trim() : "Unknown Type";
+                    // Closure Reason (Empty means Variance/Pending)
+                    let closureReason = (colReasonClosure > -1 && row[colReasonClosure]) ? row[colReasonClosure].trim() : "";
+                    
+                    // Quantity (Default 1 if missing)
+                    let qty = 1;
+                    if (colNumEnquiries > -1 && row[colNumEnquiries]) {
+                        let parsedQty = parseInt(row[colNumEnquiries]);
+                        if (!isNaN(parsedQty)) qty = parsedQty;
+                    }
+
+                    globalLeakageData.push({ netName, netType, closureReason, qty });
+                    uniqueNetworks.add(netName);
+                    uniqueNetTypes.add(netType);
+                }
+
+                if (globalLeakageData.length === 0) {
+                    alert("No valid Leakage rows found.");
+                    return;
+                }
+
+                // Setup Filters
+                const netFilter = document.getElementById('networkFilter');
+                netFilter.innerHTML = `<option value="ALL">All Networks</option>`;
+                Array.from(uniqueNetworks).sort().forEach(net => netFilter.add(new Option(net, net)));
+
+                const typeFilter = document.getElementById('netTypeFilter');
+                typeFilter.innerHTML = `<option value="ALL">All Types</option>`;
+                Array.from(uniqueNetTypes).sort().forEach(t => typeFilter.add(new Option(t, t)));
+
+                // Hide irrelevant UI
+                document.getElementById('standardOptions').classList.add('hidden');
+                document.getElementById('transitOptions').classList.add('hidden');
+                document.getElementById('tabsNav').classList.add('hidden');
+                
+                // Show relevant UI
+                document.getElementById('networkFilterDiv').classList.remove('hidden');
+                document.getElementById('netTypeFilterDiv').classList.remove('hidden'); // Show Type Filter
+                document.getElementById('modelDropdownBtn').parentElement.parentElement.classList.add('hidden'); // Hide Model Filter for Leakage
+                document.getElementById('filterContainer').classList.remove('hidden');
+                document.getElementById('leakageOptions').classList.remove('hidden'); // Show Leakage Checkbox
+
+                statusDiv.innerHTML = `✅ <b>LEAKAGE REPORT</b> Generated. (${globalLeakageData.length} records)`;
+                statusDiv.className = "mt-3 text-sm font-medium text-purple-700 h-5";
+
+                updateDisplay();
+                return;
+            }
+
+            // 2. Check for Transit Data
             if (colLoadRef > -1 && colVariant > -1 && colColor > -1) {
                 currentReportType = 'TRANSIT';
                 statusDiv.innerText = "Detected: In-Transit Data...";
@@ -656,11 +734,8 @@
                     let variant = row[colVariant] ? row[colVariant].trim() : '';
                     let color = row[colColor] ? row[colColor].trim() : '';
                     let loadRef = row[colLoadRef] ? row[colLoadRef].trim() : 'Unknown Load';
-                    
-                    // Parse Model Name (if available, else fallback to variant)
                     let modelName = (colModelName > -1 && row[colModelName]) ? row[colModelName].trim() : variant;
 
-                    // Remove blanks as requested
                     if (!variant || !color) continue;
 
                     globalTransitData.push({ modelName, variant, color, loadRef });
@@ -672,7 +747,7 @@
                     return;
                 }
 
-                // Populate Model Filters for Transit (Simplified)
+                // Populate Model Filters for Transit
                 const list = document.getElementById('modelDropdownList');
                 list.innerHTML = '';
                 const selectAllDiv = document.createElement('div');
@@ -701,8 +776,11 @@
                 // Toggle UI Sections
                 document.getElementById('standardOptions').classList.add('hidden');
                 document.getElementById('transitOptions').classList.remove('hidden');
+                document.getElementById('leakageOptions').classList.add('hidden');
                 document.getElementById('tabsNav').classList.add('hidden');
                 document.getElementById('networkFilterDiv').classList.add('hidden'); // No network filter for Transit
+                document.getElementById('netTypeFilterDiv').classList.add('hidden');
+                document.getElementById('modelDropdownBtn').parentElement.parentElement.classList.remove('hidden'); // Show Model Filter
                 document.getElementById('filterContainer').classList.remove('hidden');
                 
                 statusDiv.innerHTML = `✅ <b>IN-TRANSIT REPORT</b> Generated. (${globalTransitData.length} records)`;
@@ -712,10 +790,13 @@
                 return; // STOP HERE FOR TRANSIT
             } 
             
-            // Not Transit? Reset standard UI
+            // Not Transit/Leakage? Reset standard UI
             document.getElementById('standardOptions').classList.remove('hidden');
             document.getElementById('transitOptions').classList.add('hidden');
+            document.getElementById('leakageOptions').classList.add('hidden');
             document.getElementById('networkFilterDiv').classList.remove('hidden');
+            document.getElementById('netTypeFilterDiv').classList.add('hidden');
+            document.getElementById('modelDropdownBtn').parentElement.parentElement.classList.remove('hidden');
 
             if (colInvNo > -1 && colInvDate > -1) {
                 currentReportType = 'INVOICE';
@@ -905,6 +986,12 @@
 
         // STEP 2: Aggregate & Render
         function updateDisplay() {
+            // HANDLE LEAKAGE
+            if (currentReportType === 'LEAKAGE') {
+                renderLeakageReport();
+                return;
+            }
+            
             // HANDLE TRANSIT DISPLAY SEPARATELY
             if (currentReportType === 'TRANSIT') {
                 renderTransitReport();
@@ -1092,6 +1179,242 @@
             
             outputSection.classList.remove('hidden');
             document.getElementById('stats').innerText = `Displaying ${filteredData.length} entries.`;
+        }
+
+        // --- NEW: RENDER LEAKAGE REPORT ---
+        function renderLeakageReport() {
+            const outputSection = document.getElementById('outputSection');
+            const titleEl = document.getElementById('reportTitle');
+            const netVal = document.getElementById('networkFilter').value;
+            const typeVal = document.getElementById('netTypeFilter').value;
+            const showDetail = document.getElementById('showLeakageDetail').checked;
+
+            titleEl.innerText = showDetail ? 'Enquiry Leakage Matrix (Detail)' : 'Enquiry Leakage Summary';
+
+            // Filter
+            let filteredData = globalLeakageData.filter(d => {
+                return (typeVal === 'ALL' || d.netType === typeVal) && (netVal === 'ALL' || d.netName === netVal);
+            });
+
+            // BRANCH LOGIC: DETAIL (MATRIX) VS SUMMARY (OLD STYLE)
+            if (showDetail) {
+                // ------------------
+                // DETAIL MATRIX VIEW (Reason vs Network)
+                // ------------------
+                let pivotData = {};
+                let allNetworks = new Set();
+                let allReasons = new Set();
+                let networkTotals = {}; // For sorting columns
+
+                filteredData.forEach(d => {
+                    let netKey = d.netName;
+                    let reasonKey = (!d.closureReason || d.closureReason.trim() === '') ? "Blanks" : d.closureReason;
+                    
+                    allNetworks.add(netKey);
+                    allReasons.add(reasonKey);
+
+                    // Sorting Stats
+                    if (!networkTotals[netKey]) networkTotals[netKey] = { total: 0, done: 0 };
+                    networkTotals[netKey].total += d.qty;
+                    if (reasonKey !== "Blanks") {
+                        networkTotals[netKey].done += d.qty;
+                    }
+
+                    // Pivot
+                    if (!pivotData[reasonKey]) pivotData[reasonKey] = {};
+                    pivotData[reasonKey][netKey] = (pivotData[reasonKey][netKey] || 0) + d.qty;
+                });
+
+                // Sort Networks by %
+                let sortedNetworks = Array.from(allNetworks).sort((a, b) => {
+                    let pA = networkTotals[a].total > 0 ? (networkTotals[a].done / networkTotals[a].total) : 0;
+                    let pB = networkTotals[b].total > 0 ? (networkTotals[b].done / networkTotals[b].total) : 0;
+                    return pB - pA;
+                });
+
+                // Calculate Reason Totals for Sorting
+                let reasonCounts = {};
+                allReasons.forEach(r => {
+                    let count = 0;
+                    if (pivotData[r]) {
+                        Object.values(pivotData[r]).forEach(val => count += val);
+                    }
+                    reasonCounts[r] = count;
+                });
+                
+                // Sort Reasons (High Count First)
+                let sortedReasons = Array.from(allReasons).sort((a, b) => {
+                    return reasonCounts[b] - reasonCounts[a];
+                });
+
+                finalGrid = [];
+                // Header
+                finalGrid.push({ type: 'HEADER', data: ['Reason / Parameter', ...sortedNetworks, 'Grand Total'] });
+
+                let colSums = new Array(sortedNetworks.length).fill(0);
+                let grandRowTotalSum = 0;
+
+                sortedReasons.forEach(reason => {
+                    let rowData = [reason];
+                    let rowTotal = 0;
+                    sortedNetworks.forEach((net, idx) => {
+                        let count = pivotData[reason][net] || 0;
+                        rowData.push(count === 0 ? '' : count);
+                        if (count > 0) {
+                            rowTotal += count;
+                            colSums[idx] += count;
+                        }
+                    });
+                    rowData.push(rowTotal);
+                    grandRowTotalSum += rowTotal;
+                    
+                    let rowType = reason === "Blanks" ? 'PENDING_ROW' : 'DATA';
+                    finalGrid.push({ type: rowType, data: rowData });
+                });
+
+                // Footer Rows
+                let totalRow = ['Total Enquiries', ...colSums, grandRowTotalSum];
+                finalGrid.push({ type: 'SUMMARY_TOTAL', data: totalRow });
+
+                let percentRow = ['Followup Done %'];
+                sortedNetworks.forEach(net => {
+                    let t = networkTotals[net].total;
+                    let d = networkTotals[net].done;
+                    let p = t > 0 ? ((d/t)*100).toFixed(1) + '%' : '0.0%';
+                    percentRow.push(p);
+                });
+                let gDone = 0;
+                Object.values(networkTotals).forEach(n => gDone += n.done);
+                let gPercent = grandRowTotalSum > 0 ? ((gDone/grandRowTotalSum)*100).toFixed(1) + '%' : '0.0%';
+                percentRow.push(gPercent);
+                finalGrid.push({ type: 'SUMMARY_PERCENT', data: percentRow });
+
+                renderLeakageTable(finalGrid, 'MATRIX');
+
+            } else {
+                // ------------------
+                // SUMMARY VIEW (Network vs Stats)
+                // ------------------
+                let pivotData = {};
+            
+                filteredData.forEach(d => {
+                    let key = d.netName;
+                    if (!pivotData[key]) pivotData[key] = { total: 0, variance: 0 };
+                    pivotData[key].total += d.qty;
+                    if (!d.closureReason || d.closureReason.trim() === '') {
+                        pivotData[key].variance += d.qty;
+                    }
+                });
+
+                let sortedKeys = Object.keys(pivotData).map(key => {
+                    let data = pivotData[key];
+                    let done = data.total - data.variance;
+                    let percent = data.total > 0 ? (done / data.total) * 100 : 0;
+                    return { key, ...data, done, percent };
+                });
+
+                // Sort by % High to Low
+                sortedKeys.sort((a, b) => b.percent - a.percent);
+
+                finalGrid = [];
+                finalGrid.push({ type: 'HEADER', data: ['Network Name', 'Total Enquiries', 'Followup Done', 'Followup Pending', 'Followup Done %'] });
+
+                let gTotal = 0, gDone = 0, gVar = 0;
+
+                sortedKeys.forEach(item => {
+                    finalGrid.push({ type: 'DATA', data: [
+                        item.key, item.total, item.done, item.variance, `${item.percent.toFixed(1)}%`
+                    ]});
+                    gTotal += item.total;
+                    gDone += item.done;
+                    gVar += item.variance;
+                });
+
+                // Footer
+                let gPerc = gTotal > 0 ? ((gDone / gTotal) * 100).toFixed(1) : 0;
+                finalGrid.push({ type: 'FOOTER', data: ['Grand Total', gTotal, gDone, gVar, `${gPerc}%`] });
+
+                renderLeakageTable(finalGrid, 'SUMMARY');
+            }
+
+            outputSection.classList.remove('hidden');
+            document.getElementById('stats').innerText = `Displaying ${filteredData.length} records.`;
+        }
+
+        function renderLeakageTable(gridObjects, viewType) {
+            const table = document.getElementById('reportTable');
+            table.innerHTML = '';
+            
+            // --- HEADER ---
+            const thead = document.createElement('thead');
+            const trHead = document.createElement('tr');
+            if (gridObjects[0] && gridObjects[0].type === 'HEADER') {
+                 gridObjects[0].data.forEach((cell, i) => {
+                    const th = document.createElement('th');
+                    th.className = i === 0 ? "sticky-col-1" : "";
+                    th.innerText = cell;
+                    trHead.appendChild(th);
+                });
+            }
+            thead.appendChild(trHead);
+            table.appendChild(thead);
+
+            // --- BODY ---
+            const tbody = document.createElement('tbody');
+            // Loop skip header
+            for (let i = 1; i < gridObjects.length; i++) {
+                const tr = document.createElement('tr');
+                const rowObj = gridObjects[i];
+                const rowData = rowObj.data;
+                const type = rowObj.type;
+
+                // --- STYLING LOGIC ---
+                if (type === 'PENDING_ROW') tr.className = "bg-red-50 text-red-700 font-bold";
+                else if (type === 'SUMMARY_TOTAL') tr.className = "bg-gray-100 font-bold border-t-2 border-gray-300";
+                else if (type === 'SUMMARY_PERCENT') tr.className = "bg-blue-50 font-bold border-b-2 border-blue-200";
+                else if (type === 'FOOTER') tr.className = "bg-yellow-50 font-bold border-t-2 border-yellow-200";
+
+                rowData.forEach((cell, j) => {
+                    const tag = (j === 0) ? 'th' : 'td';
+                    const el = document.createElement(tag);
+                    
+                    // Sticky First Col
+                    if (j === 0) {
+                        let base = "sticky-col-1 text-left";
+                        if(type === 'PENDING_ROW') base += " bg-red-50 text-red-700";
+                        else if(type === 'SUMMARY_TOTAL') base += " bg-gray-100";
+                        else if(type === 'SUMMARY_PERCENT') base += " bg-blue-50";
+                        else if(type === 'FOOTER') base += " bg-yellow-50";
+                        else base += " bg-gray-50 font-medium text-gray-900";
+                        el.className = base;
+                    } else {
+                        el.className = "text-center";
+                        
+                        // % Color Logic
+                        let isPercentCol = false;
+                        if (viewType === 'SUMMARY' && j === 4) isPercentCol = true; // Last col in Summary
+                        if (viewType === 'MATRIX' && type === 'SUMMARY_PERCENT') isPercentCol = true; // Whole row in Matrix
+
+                        if (isPercentCol) {
+                            let val = parseFloat(cell);
+                            if (val < 50) el.className += " text-red-600 font-extrabold";
+                            else if (val >= 80) el.className += " text-green-600 font-extrabold";
+                            else el.className += " text-blue-600 font-bold";
+                        }
+                    }
+                    el.innerText = cell;
+                    tr.appendChild(el);
+                });
+                
+                if (type === 'FOOTER') {
+                    const tfoot = document.createElement('tfoot');
+                    tfoot.appendChild(tr);
+                    table.appendChild(tfoot);
+                } else {
+                    tbody.appendChild(tr);
+                }
+            }
+            table.appendChild(tbody);
         }
 
         // --- NEW: RENDER TRANSIT REPORT (TOP-DOWN TOTALS) ---
@@ -1435,50 +1758,70 @@
             document.getElementById('tabsNav').classList.add('hidden');
             document.getElementById('standardOptions').classList.add('hidden');
             document.getElementById('transitOptions').classList.add('hidden');
+            document.getElementById('leakageOptions').classList.add('hidden'); // ADDED
             globalParsedData = [];
             globalTestRideData = [];
             globalTransitData = [];
+            globalLeakageData = [];
         }
 
         function exportCSV() {
             if (finalGrid.length === 0) return;
             
-            // For TRANSIT, finalGrid is array of objects {type, data}. Need to extract data.
+            // Extract Data Logic
             let exportData = [];
+            
             if (currentReportType === 'TRANSIT') {
-                // Header is first element (simple array)
-                exportData.push(finalGrid[0]);
-                // Rest are objects
-                for(let i=1; i<finalGrid.length; i++) {
-                    exportData.push(finalGrid[i].data);
+                if (finalGrid[0] && Array.isArray(finalGrid[0])) {
+                     exportData.push(finalGrid[0]); // Header
                 }
-            } else {
-                exportData = finalGrid;
+                for(let i=1; i<finalGrid.length; i++) {
+                    // For Transit, rows are inside .data property
+                    if (finalGrid[i].data) exportData.push(finalGrid[i].data);
+                    else exportData.push(finalGrid[i]); // Fallback
+                }
+            } 
+            else if (currentReportType === 'LEAKAGE') {
+                // Header wrapped in object for Leakage
+                if (finalGrid[0] && finalGrid[0].data) exportData.push(finalGrid[0].data);
+                for(let i=1; i<finalGrid.length; i++) {
+                    if (finalGrid[i].data) exportData.push(finalGrid[i].data);
+                }
+            }
+            else {
+                exportData = finalGrid; // Simple 2D array for others
             }
 
             const netVal = document.getElementById('networkFilter').value;
             const showDayWise = document.getElementById('showDayWise').checked;
             
             let nameParts = [];
+            
             if (currentReportType === 'TRANSIT') {
                 nameParts.push('Transit_Report');
                 if(document.getElementById('showLoadRef').checked) nameParts.push('LoadWise_Matrix');
                 else nameParts.push('Summary');
-            } else {
-                // ... existing export logic ...
+            } 
+            else if (currentReportType === 'LEAKAGE') {
+                nameParts.push('Leakage_Analysis');
+                if (netVal !== 'ALL') nameParts.push(netVal);
+                if (document.getElementById('showLeakageDetail').checked) nameParts.push('Detailed'); // Added
+            }
+            else {
                 if (netVal === 'SEPARATE') nameParts.push('All_Networks_Sep');
                 else if (netVal !== 'ALL') nameParts.push(netVal);
+                // nameParts.push(modLabel); // Simplified
                 if (!showDayWise) nameParts.push('Summary');
             }
 
             let suffix = nameParts.length > 0 ? nameParts.join('_') : 'All';
-            let typePrefix = currentReportType === 'ENQUIRY' ? 'Enquiry' : (currentReportType === 'INVOICE' ? 'Invoice' : 'Transit');
+            let typePrefix = currentReportType === 'ENQUIRY' ? 'Enquiry' : (currentReportType === 'INVOICE' ? 'Invoice' : (currentReportType === 'LEAKAGE' ? 'Leakage' : 'Transit'));
             
             let csvContent = "data:text/csv;charset=utf-8," + exportData.map(e => e.join(",")).join("\n");
             const encodedUri = encodeURI(csvContent);
             const link = document.createElement("a");
             link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `${typePrefix}_Matrix_Report_${suffix}.csv`);
+            link.setAttribute("download", `${typePrefix}_Report_${suffix}.csv`);
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -1488,9 +1831,14 @@
             if (finalGrid.length === 0) return;
             
             let copyData = [];
-            if (currentReportType === 'TRANSIT') {
-                copyData.push(finalGrid[0]);
-                for(let i=1; i<finalGrid.length; i++) copyData.push(finalGrid[i].data);
+            if (currentReportType === 'TRANSIT' || currentReportType === 'LEAKAGE') {
+                if(finalGrid[0].data) copyData.push(finalGrid[0].data);
+                else if(Array.isArray(finalGrid[0])) copyData.push(finalGrid[0]);
+
+                for(let i=1; i<finalGrid.length; i++) {
+                     if (finalGrid[i].data) copyData.push(finalGrid[i].data);
+                     else copyData.push(finalGrid[i]);
+                }
             } else {
                 copyData = finalGrid;
             }
