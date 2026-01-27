@@ -114,11 +114,11 @@
             z-index: 100;
         }
         .menu-box {
-            background: rgba(20, 20, 20, 0.9);
+            background: rgba(20, 20, 20, 0.95);
             border: 2px solid #00ffff; /* Neon Blue Border */
             box-shadow: 0 0 30px #00ffff;
-            padding: 20px; border-radius: 15px;
-            text-align: center; width: 90%; max-width: 320px; position: relative;
+            padding: 25px; border-radius: 15px;
+            text-align: center; width: 90%; max-width: 350px; position: relative;
         }
         .developer-name {
             font-size: 18px; font-weight: bold;
@@ -155,9 +155,35 @@
             color: #2563eb;
             background-color: #eff6ff;
         }
+
+        /* Checkbox List Styles */
+        .checkbox-item:hover {
+            background-color: #f3f4f6;
+        }
+
+        /* Feature List Styles */
+        .feature-list {
+            text-align: left;
+            margin-top: 10px;
+            color: #e5e7eb;
+        }
+        .feature-item {
+            display: flex;
+            align-items: start;
+            gap: 10px;
+            margin-bottom: 12px;
+            font-size: 13px;
+        }
+        .feature-icon {
+            font-size: 16px;
+            min-width: 20px;
+        }
+        .feature-text b {
+            color: #00ffff;
+        }
     </style>
 </head>
-<body class="p-6">
+<body class="p-6" onclick="closeDropdowns(event)">
 
     <!-- Contact Overlay (Hidden by default) -->
     <div id="contact-screen" class="overlay">
@@ -181,6 +207,39 @@
             </a>
 
             <button class="close-contact" onclick="hideContact()">Close</button>
+        </div>
+    </div>
+
+    <!-- New Updates Overlay (Hidden by default) -->
+    <div id="updates-screen" class="overlay">
+        <div class="menu-box" style="border-color: #39ff14; box-shadow: 0 0 30px #39ff14;">
+            <h2 style="color:white; margin-top:0; margin-bottom: 5px; font-family: sans-serif;">🚀 What's New?</h2>
+            <p style="color:#aaa; font-size: 12px; margin-bottom: 15px;">Latest features added today!</p>
+            
+            <div class="feature-list">
+                <div class="feature-item">
+                    <span class="feature-icon">📅</span>
+                    <span class="feature-text"><b>Day-wise Toggle:</b> Switch between daily breakdown or summary view easily.</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">🏢</span>
+                    <span class="feature-text"><b>Network Breakdown:</b> View separate dealer networks or combined totals.</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">✅</span>
+                    <span class="feature-text"><b>Multi-Model Select:</b> Select multiple specific models to analyze at once.</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">🔀</span>
+                    <span class="feature-text"><b>Smart Merge:</b> Combine selected models into one custom named group.</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">🚫</span>
+                    <span class="feature-text"><b>Smart Invoice:</b> Automatically filters out 'Cancelled' invoices.</span>
+                </div>
+            </div>
+
+            <button class="close-contact" style="background: #39ff14; color: black; border: none; font-weight: bold; width: 100%; margin-top: 20px;" onclick="hideUpdates()">Awesome! Let's Start</button>
         </div>
     </div>
 
@@ -215,13 +274,31 @@
                 Clear
             </button>
             
-            <div class="flex items-center gap-2 ml-4 border-l pl-4 border-gray-300">
-                <input type="checkbox" id="showNetwork" onchange="updateDisplay()" class="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 cursor-pointer">
-                <label for="showNetwork" class="text-sm font-semibold text-gray-700 select-none cursor-pointer">Show Network Wise</label>
+            <!-- Options Group -->
+            <div class="flex items-center gap-4 ml-4 border-l pl-4 border-gray-300">
+                
+                <!-- Day Wise Checkbox -->
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" id="showDayWise" onchange="updateDisplay()" checked class="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 cursor-pointer">
+                    <label for="showDayWise" class="text-sm font-semibold text-gray-700 select-none cursor-pointer">Show Day-wise</label>
+                </div>
+
+                <!-- Network Wise Checkbox -->
+                <div class="flex items-center gap-2 border-l pl-4 border-gray-300">
+                    <input type="checkbox" id="showNetwork" onchange="updateDisplay()" checked class="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 cursor-pointer">
+                    <label for="showNetwork" class="text-sm font-semibold text-gray-700 select-none cursor-pointer">Show Network</label>
+                </div>
+
+                <!-- Model Wise Checkbox (New) -->
+                <div class="flex items-center gap-2 border-l pl-4 border-gray-300">
+                    <input type="checkbox" id="showModel" onchange="updateDisplay()" checked class="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 cursor-pointer">
+                    <label for="showModel" class="text-sm font-semibold text-gray-700 select-none cursor-pointer">Show Model</label>
+                </div>
+
             </div>
 
             <!-- Filters Container (Initially Hidden) -->
-            <div id="filterContainer" class="hidden flex flex-wrap items-center gap-4 ml-4 border-l pl-4 border-gray-300">
+            <div id="filterContainer" class="hidden flex flex-wrap items-center gap-4 ml-4 border-l pl-4 border-gray-300 z-50 relative">
                 <!-- Network Filter -->
                 <div class="flex items-center gap-2">
                     <label for="networkFilter" class="text-sm font-semibold text-gray-700">Network:</label>
@@ -230,13 +307,32 @@
                         <option value="SEPARATE" class="font-bold text-blue-700">Show All Separate</option>
                     </select>
                 </div>
-                <!-- Model Filter -->
-                <div class="flex items-center gap-2">
-                    <label for="modelFilter" class="text-sm font-semibold text-gray-700">Model:</label>
-                    <select id="modelFilter" onchange="updateDisplay()" class="text-sm border border-gray-300 rounded p-1 focus:ring-blue-500 bg-white max-w-[150px]">
-                        <option value="ALL">All Models</option>
-                    </select>
+                
+                <!-- Model Filter (Multi-Select) -->
+                <div class="flex items-center gap-2 relative">
+                    <label class="text-sm font-semibold text-gray-700">Model:</label>
+                    
+                    <div class="relative">
+                        <button id="modelDropdownBtn" onclick="toggleModelDropdown(event)" class="text-sm border border-gray-300 rounded p-1 px-2 focus:ring-blue-500 bg-white min-w-[160px] text-left flex justify-between items-center shadow-sm">
+                            <span id="modelBtnText" class="truncate max-w-[130px]">All Models</span>
+                            <span class="text-xs text-gray-500 ml-1">▼</span>
+                        </button>
+                        
+                        <div id="modelDropdownList" class="hidden absolute top-full left-0 mt-1 w-64 bg-white border border-gray-300 rounded shadow-xl z-[60] max-h-80 overflow-y-auto p-1">
+                            <!-- Checkboxes injected here -->
+                        </div>
+                    </div>
                 </div>
+
+                <!-- NEW: Merge & Rename Controls (INITIALLY HIDDEN CLASS) -->
+                <div class="hidden flex items-center gap-2 border-l pl-4 border-gray-300" id="mergeControls">
+                    <div class="flex items-center gap-1.5 bg-purple-50 px-2 py-1 rounded border border-purple-100">
+                        <input type="checkbox" id="mergeModels" onchange="toggleMergeInput()" class="w-4 h-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500 cursor-pointer">
+                        <label for="mergeModels" class="text-sm font-bold text-purple-700 cursor-pointer select-none">Merge Selected</label>
+                    </div>
+                    <input type="text" id="mergeLabel" oninput="updateDisplay()" placeholder="Custom Name..." class="hidden text-sm border border-gray-300 rounded p-1 w-32 focus:ring-purple-500 placeholder-gray-400">
+                </div>
+
             </div>
         </div>
 
@@ -281,6 +377,7 @@
         let currentReportType = 'ENQUIRY'; 
         let activeTab = 'MAIN'; // 'MAIN' or 'TEST_RIDE'
         let autoCloseTimer = null;
+        let updatesShown = false; // Flag to show updates only once
 
         // --- Creator Info Functions ---
         function showContact(isAuto = false) { 
@@ -311,6 +408,20 @@
         function hideContact() { 
             document.getElementById('contact-screen').style.display = 'none'; 
             if (autoCloseTimer) clearInterval(autoCloseTimer);
+            
+            // Trigger Updates Modal only once
+            if (!updatesShown) {
+                showUpdates();
+                updatesShown = true;
+            }
+        }
+
+        function showUpdates() {
+            document.getElementById('updates-screen').style.display = 'flex';
+        }
+
+        function hideUpdates() {
+            document.getElementById('updates-screen').style.display = 'none';
         }
 
         // Initialize on load
@@ -388,6 +499,78 @@
             return null;
         }
 
+        // --- MULTI-SELECT FUNCTIONS ---
+        function toggleModelDropdown(e) {
+            e.stopPropagation(); // Prevent closing immediately
+            const list = document.getElementById('modelDropdownList');
+            list.classList.toggle('hidden');
+        }
+
+        function closeDropdowns(e) {
+            const list = document.getElementById('modelDropdownList');
+            const btn = document.getElementById('modelDropdownBtn');
+            if (!list.classList.contains('hidden') && !list.contains(e.target) && !btn.contains(e.target)) {
+                list.classList.add('hidden');
+            }
+        }
+
+        function updateModelSelection(isSelectAll = false) {
+            const allCheckbox = document.getElementById('modelSelectAll');
+            const otherCheckboxes = document.querySelectorAll('.model-checkbox');
+            const mergeControls = document.getElementById('mergeControls');
+            const mergeCheckbox = document.getElementById('mergeModels');
+            const mergeInput = document.getElementById('mergeLabel');
+            
+            if (isSelectAll) {
+                otherCheckboxes.forEach(cb => cb.checked = allCheckbox.checked);
+            } else {
+                // If any individual unchecked, uncheck "All"
+                // If all individual checked, check "All"
+                const allChecked = Array.from(otherCheckboxes).every(cb => cb.checked);
+                allCheckbox.checked = allChecked;
+            }
+
+            // VISIBILITY LOGIC FOR MERGE CONTROLS
+            if (allCheckbox.checked) {
+                // Hide Merge if All Selected
+                mergeControls.classList.add('hidden');
+                // Reset Merge State
+                mergeCheckbox.checked = false;
+                mergeInput.classList.add('hidden');
+                mergeInput.value = '';
+            } else {
+                // Show Merge if specific models selected
+                mergeControls.classList.remove('hidden');
+            }
+
+            // Update Button Text
+            const checkedCount = Array.from(otherCheckboxes).filter(cb => cb.checked).length;
+            const btnText = document.getElementById('modelBtnText');
+            
+            if (allCheckbox.checked || checkedCount === otherCheckboxes.length) {
+                btnText.innerText = "All Models";
+            } else if (checkedCount === 0) {
+                btnText.innerText = "Select Models...";
+            } else {
+                btnText.innerText = `${checkedCount} Selected`;
+            }
+
+            updateDisplay();
+        }
+
+        // --- MERGE TOGGLE FUNCTION ---
+        function toggleMergeInput() {
+            const isChecked = document.getElementById('mergeModels').checked;
+            const input = document.getElementById('mergeLabel');
+            if (isChecked) {
+                input.classList.remove('hidden');
+                input.focus();
+            } else {
+                input.classList.add('hidden');
+            }
+            updateDisplay();
+        }
+
         // STEP 1: Parse Data & Logic
         function parseAndGenerate() {
             const input = document.getElementById('csvInput').value.trim();
@@ -431,6 +614,9 @@
             const colInvDate = getColumnIndex(headers, ['invoice date']).index;
             const colBillingCode = getColumnIndex(headers, ['billing network code']).index;
             
+            // New: Status Column for Invoice Filtering
+            const colStatus = getColumnIndex(headers, ['status', 'invoice status']).index;
+
             // New: Test Ride Column Detection
             const colTestRide = getColumnIndex(headers, ['test ride flag', 'test ride']).index;
 
@@ -466,6 +652,7 @@
             let rawData = [];
             let codeCounts = {};
             let mainDealerCode = null;
+            let skippedCancelledCount = 0; // COUNTER FOR CANCELLED INVOICES
 
             for (let i = 1; i < lines.length; i++) {
                 let row = parseRow(lines[i], delimiter);
@@ -485,6 +672,16 @@
 
                 if (currentReportType === 'INVOICE') {
                     if (colNetSource === -1 || !row[colNetSource] || row[colNetSource].trim() === '') continue; 
+                    
+                    // FILTER: Only include if Status is "New"
+                    if (colStatus > -1) {
+                        const statusVal = row[colStatus] ? row[colStatus].trim().toUpperCase() : '';
+                        if (statusVal !== 'NEW') {
+                            skippedCancelledCount++; // Increment if Cancelled/Not New
+                            continue;
+                        }
+                    }
+
                     extractedCode = row[colNetSource].trim().toUpperCase();
                 } else {
                     let netType = (colNetSource > -1 && row[colNetSource]) ? row[colNetSource].trim().toLowerCase() : '';
@@ -553,19 +750,56 @@
                 return;
             }
 
-            // Populate Filters
+            // Populate Network Filter
             const netFilter = document.getElementById('networkFilter');
             netFilter.innerHTML = `<option value="ALL">All Networks (Sum)</option><option value="SEPARATE" class="font-bold text-blue-700">Show All Separate</option>`;
             Array.from(uniqueNetworks).sort().forEach(code => netFilter.add(new Option(code, code)));
 
-            const modFilter = document.getElementById('modelFilter');
-            modFilter.innerHTML = '<option value="ALL">All Models</option>';
-            Array.from(uniqueModels).sort().forEach(mod => modFilter.add(new Option(mod, mod)));
+            // Populate Multi-Select Model Filter
+            const list = document.getElementById('modelDropdownList');
+            list.innerHTML = '';
+            
+            // "Select All" Option
+            const selectAllDiv = document.createElement('div');
+            selectAllDiv.className = 'p-2 border-b border-gray-200 sticky top-0 bg-white z-10';
+            selectAllDiv.innerHTML = `
+                <label class="flex items-center space-x-2 cursor-pointer font-bold text-blue-700 hover:text-blue-900">
+                    <input type="checkbox" id="modelSelectAll" checked onchange="updateModelSelection(true)" class="w-4 h-4 text-blue-600 rounded">
+                    <span>Select All</span>
+                </label>
+            `;
+            list.appendChild(selectAllDiv);
+
+            Array.from(uniqueModels).sort().forEach(mod => {
+                const div = document.createElement('div');
+                div.className = 'checkbox-item p-1.5 px-2 hover:bg-gray-100';
+                div.innerHTML = `
+                    <label class="flex items-center space-x-2 cursor-pointer w-full">
+                        <input type="checkbox" value="${mod}" checked onchange="updateModelSelection(false)" class="model-checkbox w-4 h-4 text-blue-600 rounded border-gray-300">
+                        <span class="text-gray-700 truncate text-xs" title="${mod}">${mod}</span>
+                    </label>
+                `;
+                list.appendChild(div);
+            });
+            
+            // Reset Button Text
+            document.getElementById('modelBtnText').innerText = "All Models";
+
+            // Reset Merge Controls (Hidden by default for All Models)
+            const mergeControls = document.getElementById('mergeControls');
+            mergeControls.classList.add('hidden');
+            document.getElementById('mergeModels').checked = false;
+            document.getElementById('mergeLabel').classList.add('hidden');
+            document.getElementById('mergeLabel').value = '';
+
+            // ENSURE Show Network & Day Wise defaults are respected/reset if needed
+            // (They are static HTML checkboxes, so they stay checked unless user unchecked them)
 
             document.getElementById('filterContainer').classList.remove('hidden');
 
             if (currentReportType === 'INVOICE') {
-                statusDiv.innerHTML = `✅ <b>INVOICE REPORT</b> Generated.`;
+                let excludedMsg = skippedCancelledCount > 0 ? ` (${skippedCancelledCount} Cancelled Invoice${skippedCancelledCount !== 1 ? 's' : ''} excluded)` : '';
+                statusDiv.innerHTML = `✅ <b>INVOICE REPORT</b> Generated.${excludedMsg}`;
             } else {
                 // Count unique IDs in Test Ride Data for status message
                 let uniqueTR = new Set(globalTestRideData.map(r => r.id)).size;
@@ -589,12 +823,29 @@
             }
 
             const showNetworkCheckbox = document.getElementById('showNetwork').checked;
+            const showModel = document.getElementById('showModel').checked; // NEW: Show Model Checkbox
+            const showDayWise = document.getElementById('showDayWise').checked; 
             const netVal = document.getElementById('networkFilter').value;
-            const modVal = document.getElementById('modelFilter').value;
+            
+            // MERGE Logic
+            const isMergeOn = document.getElementById('mergeModels').checked;
+            const customMergeName = document.getElementById('mergeLabel').value.trim() || "Merged Group";
+
+            // MULTI-SELECT FILTER LOGIC
+            const allCheckbox = document.getElementById('modelSelectAll');
+            let selectedModels = [];
+            if (allCheckbox && !allCheckbox.checked) {
+                // If Select All is NOT checked, gather checked individual models
+                const checkboxes = document.querySelectorAll('.model-checkbox:checked');
+                selectedModels = Array.from(checkboxes).map(cb => cb.value);
+            }
+            // If Select All IS checked, we ignore individual logic (assume all)
+
             const outputSection = document.getElementById('outputSection');
             const titleEl = document.getElementById('reportTitle');
 
             // View Logic
+            // FIX: Ensure Network Wise view triggers if checkbox is checked OR dropdown is 'SEPARATE'
             let isNetworkWiseView = showNetworkCheckbox || (netVal === 'SEPARATE');
 
             // Title Logic
@@ -604,15 +855,34 @@
             let titleParts = [];
             if (netVal !== 'ALL' && netVal !== 'SEPARATE') titleParts.push(netVal);
             else if (netVal === 'SEPARATE') titleParts.push("All Networks (Sep)");
-            if (modVal !== 'ALL') titleParts.push(modVal);
+            
+            // Title for Model Selection
+            if (allCheckbox && !allCheckbox.checked) {
+                if (selectedModels.length > 0 && selectedModels.length <= 3) {
+                    titleParts.push(selectedModels.join(', '));
+                } else if (selectedModels.length > 3) {
+                    titleParts.push(`${selectedModels.length} Models Selected`);
+                } else {
+                    titleParts.push("No Models");
+                }
+            } else {
+                 // All Models logic - usually we don't put "All Models" in title unless verbose needed
+            }
             
             let titleSuffix = titleParts.length > 0 ? titleParts.join(' - ') : 'All';
+            if (!showDayWise) titleSuffix += " (Summary)";
             titleEl.innerText = `${typeLabel} Matrix Preview (${titleSuffix})`;
 
             // Filtering
             let filteredData = sourceData.filter(d => {
                 let matchNet = (netVal === 'ALL' || netVal === 'SEPARATE') || (d.netCode === netVal);
-                let matchMod = (modVal === 'ALL') || (d.variant === modVal);
+                
+                // Model Match Logic
+                let matchMod = true;
+                if (allCheckbox && !allCheckbox.checked) {
+                     matchMod = selectedModels.includes(d.variant);
+                }
+                
                 return matchNet && matchMod;
             });
 
@@ -623,7 +893,22 @@
 
             filteredData.forEach(row => {
                 if (!allDatesMap.has(row.dateLabel)) allDatesMap.set(row.dateLabel, row.dateIso);
-                let key = isNetworkWiseView ? `${row.netCode}###${row.variant}` : row.variant;
+                
+                // Construct Key based on active breakdown checkboxes
+                let keyParts = [];
+                if (isNetworkWiseView) keyParts.push(row.netCode);
+                if (showModel) {
+                    // IF MERGE IS ON, override the variant name with the custom name
+                    // This naturally groups them in the pivot
+                    if (isMergeOn) {
+                        keyParts.push(customMergeName);
+                    } else {
+                        keyParts.push(row.variant);
+                    }
+                }
+                
+                let key = keyParts.length > 0 ? keyParts.join('###') : 'TOTAL_SUMMARY';
+
                 allKeys.add(key);
                 if (!pivotData[key]) pivotData[key] = {};
                 if (!pivotData[key][row.dateLabel]) pivotData[key][row.dateLabel] = new Set();
@@ -633,60 +918,103 @@
             // Sorting
             const sortedDates = Array.from(allDatesMap.keys()).sort((a, b) => allDatesMap.get(a) - allDatesMap.get(b));
             const sortedKeys = Array.from(allKeys).sort((a, b) => {
-                if (isNetworkWiseView) {
-                    let [netA, varA] = a.split('###');
-                    let [netB, varB] = b.split('###');
-                    if (netA !== netB) return netA.localeCompare(netB);
-                    return varA.localeCompare(varB);
+                if (a === 'TOTAL_SUMMARY') return -1;
+                if (b === 'TOTAL_SUMMARY') return 1;
+
+                let partsA = a.split('###');
+                let partsB = b.split('###');
+                
+                // Compare part by part
+                for(let i=0; i < Math.min(partsA.length, partsB.length); i++) {
+                    let cmp = partsA[i].localeCompare(partsB[i]);
+                    if (cmp !== 0) return cmp;
                 }
-                return a.localeCompare(b);
+                return partsA.length - partsB.length;
             });
 
             // Build Grid
             finalGrid = [];
-            let headerRow = isNetworkWiseView 
-                ? ['Network Code', 'Model Variant', ...sortedDates, 'Grand Total'] 
-                : ['Model Variant', ...sortedDates, 'Grand Total'];
+            
+            // Build Header Row
+            let headerRow = [];
+            if (isNetworkWiseView) headerRow.push('Network Code');
+            if (showModel) headerRow.push('Model Variant');
+            if (headerRow.length === 0) headerRow.push('Summary');
+
+            // Conditionally Add Date Headers
+            if (showDayWise) {
+                headerRow.push(...sortedDates);
+            }
+            headerRow.push('Grand Total');
+            
             finalGrid.push(headerRow);
 
             let colTotals = new Array(sortedDates.length).fill(0);
             let grandTotalAll = 0;
 
             sortedKeys.forEach(key => {
-                let rowDisplay = isNetworkWiseView ? key.split('###') : [key];
+                let rowDisplay = key === 'TOTAL_SUMMARY' ? ['Total Sales'] : key.split('###');
                 let rowCounts = [];
                 let rowTotal = 0;
+                
                 sortedDates.forEach((date, idx) => {
                     let count = pivotData[key][date] ? pivotData[key][date].size : 0;
-                    rowCounts.push(count === 0 ? '' : count);
+                    
+                    // Always calculate totals regardless of display setting
                     if (count > 0) { rowTotal += count; colTotals[idx] += count; }
+                    
+                    // Only add to row display if day-wise is checked
+                    if (showDayWise) {
+                        rowCounts.push(count === 0 ? '' : count);
+                    }
                 });
+
                 finalGrid.push([...rowDisplay, ...rowCounts, rowTotal]);
                 grandTotalAll += rowTotal;
             });
 
-            let footerLabel = isNetworkWiseView ? ['Grand Total', ''] : ['Grand Total'];
-            finalGrid.push([...footerLabel, ...colTotals.map(t => t === 0 ? '' : t), grandTotalAll]);
+            // Footer Logic
+            let footerLabel = [];
+            // Calculate how many label columns we have
+            let labelColCount = (isNetworkWiseView ? 1 : 0) + (showModel ? 1 : 0);
+            if (labelColCount === 0) labelColCount = 1; // For 'Summary' column
 
-            renderTable(finalGrid, isNetworkWiseView);
+            footerLabel.push('Grand Total');
+            // Fill remaining label columns with empty strings
+            for(let i=1; i<labelColCount; i++) footerLabel.push('');
+
+            let footerCounts = [];
+            if (showDayWise) {
+                footerCounts = colTotals.map(t => t === 0 ? '' : t);
+            }
+            finalGrid.push([...footerLabel, ...footerCounts, grandTotalAll]);
+
+            renderTable(finalGrid, isNetworkWiseView, showModel);
             
             outputSection.classList.remove('hidden');
             document.getElementById('stats').innerText = `Displaying ${filteredData.length} entries.`;
         }
 
-        function renderTable(grid, isNetworkWise) {
+        function renderTable(grid, isNetworkWise, showModel) {
             const table = document.getElementById('reportTable');
             table.innerHTML = '';
             
+            // Calculate fixed columns count
+            let fixedColCount = (isNetworkWise ? 1 : 0) + (showModel ? 1 : 0);
+            if (fixedColCount === 0) fixedColCount = 1; // Logic fallback for 'Summary'
+
             const thead = document.createElement('thead');
             const trHead = document.createElement('tr');
             grid[0].forEach((cell, i) => {
                 const th = document.createElement('th');
+                
+                // Sticky Logic
                 if (i === 0) th.className = "sticky-col-1";
-                if (isNetworkWise && i === 1) {
+                if (i === 1 && fixedColCount > 1) {
                     th.className = "sticky-col-2";
-                    th.style.left = "110px"; 
+                    th.style.left = "110px"; // Adjust based on first column width
                 }
+
                 th.innerText = cell;
                 trHead.appendChild(th);
             });
@@ -697,15 +1025,16 @@
             for (let i = 1; i < grid.length - 1; i++) {
                 const tr = document.createElement('tr');
                 grid[i].forEach((cell, j) => {
-                    const tag = (j === 0 || (isNetworkWise && j === 1)) ? 'th' : 'td';
+                    const tag = (j < fixedColCount) ? 'th' : 'td';
                     const el = document.createElement(tag);
                     
                     if (j === 0) el.className = "sticky-col-1 text-left bg-gray-50 font-medium text-gray-900";
-                    if (isNetworkWise && j === 1) {
+                    if (j === 1 && fixedColCount > 1) {
                         el.className = "sticky-col-2 text-left bg-gray-50 font-medium text-gray-900";
                         el.style.left = "110px";
                     }
-                    if (j > (isNetworkWise ? 1 : 0)) el.className = "text-center";
+                    
+                    if (j >= fixedColCount) el.className = "text-center";
                     if (j === grid[i].length - 1) el.className += " font-bold bg-blue-50 text-blue-700";
                     
                     el.innerText = cell;
@@ -721,12 +1050,14 @@
             lastRow.forEach((cell, j) => {
                 const td = document.createElement('td');
                 td.className = "text-center";
+                
                 if (j === 0) {
                      td.className += " text-left sticky-col-1";
-                     if (isNetworkWise) td.setAttribute("colspan", 2);
-                } else if (isNetworkWise && j === 1) {
-                    return; 
+                     if (fixedColCount > 1) td.setAttribute("colspan", fixedColCount);
+                } else if (j < fixedColCount) {
+                    return; // Skip cells covered by colspan
                 }
+                
                 td.innerText = cell;
                 trFoot.appendChild(td);
             });
@@ -748,14 +1079,29 @@
             if (finalGrid.length === 0) return;
             
             const netVal = document.getElementById('networkFilter').value;
-            const modVal = document.getElementById('modelFilter').value;
+            // const modVal = document.getElementById('modelFilter').value; // OLD SINGLE SELECT
+            const showDayWise = document.getElementById('showDayWise').checked;
             
+            // Check multi-select state
+            const allCheckbox = document.getElementById('modelSelectAll');
+            let modLabel = 'All_Models';
+            if (allCheckbox && !allCheckbox.checked) {
+                 const checkboxes = document.querySelectorAll('.model-checkbox:checked');
+                 if (checkboxes.length > 0 && checkboxes.length < 4) {
+                     modLabel = Array.from(checkboxes).map(c => c.value.replace(/[^a-z0-9]/gi, '')).join('_');
+                 } else {
+                     modLabel = 'Selected_Models';
+                 }
+            }
+
             let nameParts = [];
             if (netVal === 'SEPARATE') nameParts.push('All_Networks_Sep');
             else if (netVal !== 'ALL') nameParts.push(netVal);
             
-            if (modVal !== 'ALL') nameParts.push(modVal.replace(/[^a-z0-9]/gi, '_')); 
+            nameParts.push(modLabel);
             
+            if (!showDayWise) nameParts.push('Summary');
+
             let suffix = nameParts.length > 0 ? nameParts.join('_') : 'All';
             let typePrefix = currentReportType === 'ENQUIRY' ? 'Enquiry' : 'Invoice';
             if (activeTab === 'TEST_RIDE') typePrefix = 'Test_Ride';
